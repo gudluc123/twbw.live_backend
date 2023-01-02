@@ -56,11 +56,12 @@ function CardGame() {
   // const multiplierCount = useRef([]);
   // const timeCount_xaxis = useRef([]);
   //  console.log(resultCard)
+ // http://139.59.36.115:4000/get_chat_history
 
   // Socket.io setup
   useEffect(() => {
     retrieve();
-    const socket = io.connect("http://localhost:4000");
+    const socket = io.connect("http://139.59.36.115:4000");
     setGlobalSocket(socket);
 
     socket.on("news_by_server", function (data) {
@@ -73,7 +74,7 @@ function CardGame() {
     // });
 
     socket.on("randomCardColor", function (data) {
-      console.log(data);
+      // console.log(data);
       setResultCard(data);
       setLiveMultiplier(data);
       setLiveMultiplierSwitch(false);
@@ -87,7 +88,7 @@ function CardGame() {
     socket.on("crash_history", function (data) {
       setCrashHistory(data);
 
-      console.log(data);
+      // console.log(data);
 
       // let temp_streak_list = [];
       // const new_data = data;
@@ -109,7 +110,7 @@ function CardGame() {
     });
 
     socket.on("get_round_id_list", function (data) {
-      console.log(data);
+      // console.log(data);
       setRoundIdList(data);
     });
 
@@ -222,12 +223,12 @@ function CardGame() {
   useEffect(() => {}, [liveBettingTable]);
 
   // Routes
-  const API_BASE = "http://localhost:4000";
+  const API_BASE = "http://139.59.36.115:4000";
   const register = async () => {
     try {
       const res = await Axios({
         method: "post",
-        url: "http://localhost:4000/register",
+        url: "http://139.59.36.115:4000/register",
         data: {
           username: registerUsername,
           password: registerPassword,
@@ -250,7 +251,7 @@ function CardGame() {
             password: registerPassword,
           },
           withCredentials: true,
-          url: "http://localhost:4000/login",
+          url: "http://139.59.36.115:4000/login",
         });
 
         // console.log(res1);
@@ -278,7 +279,7 @@ function CardGame() {
           password: loginPassword,
         },
         withCredentials: true,
-        url: "http://localhost:4000/login",
+        url: "http://139.59.36.115:4000/login",
       });
 
       if (res) {

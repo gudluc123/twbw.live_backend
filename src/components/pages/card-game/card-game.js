@@ -56,12 +56,12 @@ function CardGame() {
   // const multiplierCount = useRef([]);
   // const timeCount_xaxis = useRef([]);
   //  console.log(resultCard)
- // http://139.59.36.115:4000/get_chat_history
+ // https://139.59.36.115:4000/get_chat_history
 
   // Socket.io setup
   useEffect(() => {
     retrieve();
-    const socket = io.connect("http://139.59.36.115:4000");
+    const socket = io.connect("https://139.59.36.115:4000");
     setGlobalSocket(socket);
 
     socket.on("news_by_server", function (data) {
@@ -223,12 +223,12 @@ function CardGame() {
   useEffect(() => {}, [liveBettingTable]);
 
   // Routes
-  const API_BASE = "http://139.59.36.115:4000";
+  const API_BASE = "https://139.59.36.115:4000";
   const register = async () => {
     try {
       const res = await Axios({
         method: "post",
-        url: "http://139.59.36.115:4000/register",
+        url: "https://139.59.36.115:4000/register",
         data: {
           username: registerUsername,
           password: registerPassword,
@@ -236,7 +236,7 @@ function CardGame() {
         withCredentials: true,
       });
 
-      console.log(res);
+      // console.log(res);
 
       if (res) {
         setAuthResponseMessage(res.data);
@@ -251,7 +251,7 @@ function CardGame() {
             password: registerPassword,
           },
           withCredentials: true,
-          url: "http://139.59.36.115:4000/login",
+          url: "https://139.59.36.115:4000/login",
         });
 
         // console.log(res1);
@@ -279,7 +279,7 @@ function CardGame() {
           password: loginPassword,
         },
         withCredentials: true,
-        url: "http://139.59.36.115:4000/login",
+        url: "https://139.59.36.115:4000/login",
       });
 
       if (res) {
@@ -383,7 +383,7 @@ function CardGame() {
         url: API_BASE + "/send_bet",
       });
 
-      console.log(res);
+      // console.log(res);
 
       if (res) {
         setBetActive(true);

@@ -13,9 +13,10 @@ const Game_loop = require("./models/game_loop");
 require("dotenv").config();
 
 const GAME_LOOP_ID = "63a18010136c7f925346c6c0";
-
+const fs = require("fs");
+const path = require("path");
 const { Server } = require("socket.io");
-const http = require("http");
+const https = require("https");
 const Stopwatch = require("statman-stopwatch");
 const { update } = require("./models/user");
 const { isTypedArray } = require("util/types");
@@ -28,7 +29,13 @@ let MONGOOSE_DB_LINK =
   "mongodb+srv://siamaqConsultancy:siamaqAdmin@siamaqdatabase.obfed2x.mongodb.net/bustabitClone";
 
 // Start Socket.io Server
-const server = http.createServer(app);
+const server = https.createServer(
+  {
+    key: fs.readFileSync(path.join(__dirname, "cert", "key.pem")),
+    cert: fs.readFileSync(path.join(__dirname, "cert", "cert.pem")),
+  },
+  app
+);
 const io = new Server(server, {
   cors: {
     origin: "*",

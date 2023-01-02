@@ -23,6 +23,9 @@ const userLogInRecord = require("./models/userLogInRecord");
 const userGameLog = require("./models/userGameLog");
 const sw = new Stopwatch(true);
 
+let PASSPORT_SECRET = "Siamaq@9"
+let MONGOOSE_DB_LINK = "mongodb+srv://siamaqConsultancy:siamaqAdmin@siamaqdatabase.obfed2x.mongodb.net/bustabitClone"
+
 // Start Socket.io Server
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -46,7 +49,7 @@ io.on("connection", (socket) => {
 });
 
 // Connect to MongoDB
-mongoose.connect(process.env.MONGOOSE_DB_LINK, {
+mongoose.connect(process.env.MONGOOSE_DB_LINK || MONGOOSE_DB_LINK, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
@@ -62,12 +65,12 @@ app.use(
 );
 app.use(
   session({
-    secret: process.env.PASSPORT_SECRET,
+    secret: process.env.PASSPORT_SECRET || PASSPORT_SECRET,
     resave: true,
     saveUninitialized: true,
   })
 );
-app.use(cookieParser(process.env.PASSPORT_SECRET));
+app.use(cookieParser(process.env.PASSPORT_SECRET || PASSPORT_SECRET));
 app.use(passport.initialize());
 app.use(passport.session());
 require("./passportConfig")(passport);

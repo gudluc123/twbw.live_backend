@@ -23,8 +23,9 @@ const userLogInRecord = require("./models/userLogInRecord");
 const userGameLog = require("./models/userGameLog");
 const sw = new Stopwatch(true);
 
-let PASSPORT_SECRET = "Siamaq@9"
-let MONGOOSE_DB_LINK = "mongodb+srv://siamaqConsultancy:siamaqAdmin@siamaqdatabase.obfed2x.mongodb.net/bustabitClone"
+let PASSPORT_SECRET = "Siamaq@9";
+let MONGOOSE_DB_LINK =
+  "mongodb+srv://siamaqConsultancy:siamaqAdmin@siamaqdatabase.obfed2x.mongodb.net/bustabitClone";
 
 // Start Socket.io Server
 const server = http.createServer(app);
@@ -162,6 +163,14 @@ app.post("/register", async (req, res) => {
 // });
 
 // Routes
+
+app.get("/", (req, res) => {
+  try {
+    res.send("hello from server");
+  } catch (error) {
+    return res.status(500).send({ status: false, message: error.message });
+  }
+});
 
 app.get("/user", checkAuthenticated, (req, res) => {
   try {
@@ -657,12 +666,12 @@ const loopUpdate = async () => {
   }
 };
 
-    // const updateUserGameLog = await userGameLog.updateOne(
-      //   { _id: userGameLogId },
-      //   {
-      //     roundId: the_round_id_list[the_round_id_list.length - 1] + 1,
-      //     resultCard: resultCard,
-      //   },
-      //   { new: true }
-      // );
-      // console.log(updateUserGameLog);
+// const updateUserGameLog = await userGameLog.updateOne(
+//   { _id: userGameLogId },
+//   {
+//     roundId: the_round_id_list[the_round_id_list.length - 1] + 1,
+//     resultCard: resultCard,
+//   },
+//   { new: true }
+// );
+// console.log(updateUserGameLog);

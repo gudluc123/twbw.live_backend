@@ -63,7 +63,7 @@ function CardGame() {
   // Socket.io setup
   useEffect(() => {
     retrieve();
-    const socket = io.connect("http://localhost:4000");
+    const socket = io.connect("http://139.59.65.179:4000");
     setGlobalSocket(socket);
 
     socket.on("news_by_server", function (data) {

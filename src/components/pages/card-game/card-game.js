@@ -58,7 +58,7 @@ function CardGame() {
   // const multiplierCount = useRef([]);
   // const timeCount_xaxis = useRef([]);
   //  console.log(startGameLoop)
-  // http://localhost:4000/get_chat_history
+  // http://139.59.65.179:4000/get_chat_history
 
   // Socket.io setup
   useEffect(() => {
@@ -225,12 +225,12 @@ function CardGame() {
   useEffect(() => {}, [liveBettingTable]);
 
   // Routes
-  const API_BASE = "http://localhost:4000";
+  const API_BASE = "http://139.59.65.179:4000";
   const register = async () => {
     try {
       const res = await Axios({
         method: "post",
-        url: "http://localhost:4000/register",
+        url: "http://139.59.65.179:4000/register",
         data: {
           username: registerUsername,
           userEmail: registerEmail,
@@ -254,7 +254,7 @@ function CardGame() {
             password: registerPassword,
           },
           withCredentials: true,
-          url: "http://localhost:4000/login",
+          url: "http://139.59.65.179:4000/login",
         });
 
         // console.log(res1);
@@ -282,7 +282,7 @@ function CardGame() {
           password: loginPassword,
         },
         withCredentials: true,
-        url: "http://localhost:4000/login",
+        url: "http://139.59.65.179:4000/login",
       });
 
       // console.log(res);

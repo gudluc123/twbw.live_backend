@@ -8,20 +8,23 @@ const cookieParser = require("cookie-parser");
 const bcrypt = require("bcryptjs");
 const session = require("express-session");
 const app = express();
-const User = require("./models/user");
-const Game_loop = require("./models/game_loop");
+const User = require("./src/models/user");
+const Game_loop = require("./src/models/game_loop");
 require("dotenv").config();
 
 const GAME_LOOP_ID = "63a18010136c7f925346c6c0";
-const fs = require("fs");
-const path = require("path");
+
 const { Server } = require("socket.io");
-const https = require("https");
+const http = require("http");
 const Stopwatch = require("statman-stopwatch");
-const { update } = require("./models/user");
+const { update } = require("./src/models/user");
 const { isTypedArray } = require("util/types");
-const userLogInRecord = require("./models/userLogInRecord");
-const userGameLog = require("./models/userGameLog");
+const userLogInRecord = require("./src/models/userLogInRecord");
+const userGameLog = require("./src/models/userGameLog");
+// const { route } = require("./src/");
+const route = require("./src/routes/route");
+const gameLoopModel = require("./src/models/gameLoopModel");
+
 const sw = new Stopwatch(true);
 
 let PASSPORT_SECRET = "Siamaq@9";
@@ -29,13 +32,7 @@ let MONGOOSE_DB_LINK =
   "mongodb+srv://siamaqConsultancy:siamaqAdmin@siamaqdatabase.obfed2x.mongodb.net/bustabitClone";
 
 // Start Socket.io Server
-const server = https.createServer(
-  {
-    key: fs.readFileSync(path.join(__dirname, "cert", "key.pem")),
-    cert: fs.readFileSync(path.join(__dirname, "cert", "cert.pem")),
-  },
-  app
-);
+const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: "*",
@@ -47,6 +44,15 @@ io.on("connection", (socket) => {
   socket.on("clicked", (data) => {});
   console.log("socket.io: User connected: ", socket.id);
 
+  socket.on("callGameloop", function (data) {
+    // console.log(data)
+    // if(data === true){
+    //   game();
+    // }
+    //   setGlobalTimeNow(Date.now());
+    //   setLiveMultiplierSwitch(true);
+  });
+
   socket.on("disconnect", () => {
     console.log("socket.io: User disconnected: ", socket.id);
   });
@@ -57,7 +63,7 @@ io.on("connection", (socket) => {
 });
 
 // Connect to MongoDB
-mongoose.connect(process.env.MONGOOSE_DB_LINK || MONGOOSE_DB_LINK, {
+mongoose.connect(MONGOOSE_DB_LINK, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
@@ -73,12 +79,12 @@ app.use(
 );
 app.use(
   session({
-    secret: process.env.PASSPORT_SECRET || PASSPORT_SECRET,
+    secret: PASSPORT_SECRET,
     resave: true,
     saveUninitialized: true,
   })
 );
-app.use(cookieParser(process.env.PASSPORT_SECRET || PASSPORT_SECRET));
+app.use(cookieParser(PASSPORT_SECRET));
 app.use(passport.initialize());
 app.use(passport.session());
 require("./passportConfig")(passport);
@@ -132,6 +138,7 @@ app.post("/register", async (req, res) => {
 
         const newUser = new User({
           username: req.body.username,
+          userEmail: req.body.userEmail,
           password: hashedPassword,
         });
         await newUser.save();
@@ -143,34 +150,51 @@ app.post("/register", async (req, res) => {
   }
 });
 
-// app.post("/gameLoop", async (req, res) => {
-//   try {
-//     const requestBody = req.body;
+let id;
+let game_phase = false;
+// console.log(game_phase);
+let game = async () => {
+  // const requestBody = req.body;
+  // const {
+  //   active_player_id_list,
+  //   gameCrash,
+  //   b_betting_phase,
+  //   b_game_phase,
+  //   b_cashout_phase,
+  //   timeNow,
+  //   // roundId,
+  //   round_id_list,
+  //   chat_messages_list,
+  // } = requestBody;
 
-//     const {
-//       round_number,
-//       active_player_id_list,
-//       multiplier_crash,
-//       b_betting_phase,
-//       b_game_phase,
-//       b_cashout_phase,
-//       time_now,
-//       round_id_list,
-//       chat_messages_list,
-//     } = requestBody;
+  let gameLoopList = await gameLoopModel.find().count();
 
-//     const game = await Game_loop.create(requestBody);
+  const gameData = {
+    active_player_id_list: live_bettors_table,
+    gameCrash: resultCard,
+    b_betting_phase: betting_phase,
+    b_game_phase: game_phase,
+    b_cashout_phase: cashout_phase,
+    roundId: gameLoopList + 1,
+    chat_messages_list: messages_list,
+  };
 
-//     return res
-//       .status(201)
-//       .send({ status: true, message: "Success", data: game });
-//   } catch (error) {
-// return res.status(500).send({ status: false, message: error.message });
-//   }
-// });
+  const game = await gameLoopModel.create(gameData);
+
+  id = game._id;
+  // console.log(game);
+  // return res
+  //   .status(201)
+  //   .send({ status: true, message: "Success", data: game });
+  // }
+};
+
+if (game_phase === true) {
+  game();
+  // console.log(id);
+}
 
 // Routes
-
 app.get("/", (req, res) => {
   try {
     res.send("hello from server");
@@ -341,11 +365,12 @@ app.get("/calculate_winnings", checkAuthenticated, async (req, res) => {
 app.get("/get_game_status", async (req, res) => {
   try {
     let theLoop = await Game_loop.findById(GAME_LOOP_ID);
-    const crashes = theLoop.previous_crashes.reverse().slice(0, 15);
-    const roundId = theLoop.round_id_list.reverse().slice(0, 15);
+    const crashes = theLoop.previous_crashes.reverse().slice(0, 25);
+    const roundId = theLoop.round_id_list.reverse().slice(0, 25);
     // console.log(roundId)
     io.emit("crash_history", crashes);
     io.emit("get_round_id_list", roundId);
+    // console.log(phase_start_time)
     if (betting_phase == true) {
       res.json({ phase: "betting_phase", info: phase_start_time });
       return;
@@ -513,6 +538,7 @@ function checkNotAuthenticated(req, res, next) {
   next();
 }
 
+app.use("/", route);
 // Listen Server
 server.listen(4000, () => {
   console.log(`Server running on Port 4000`);
@@ -533,17 +559,21 @@ const cashout = async () => {
   await theLoop.save();
 };
 
+// const pat1 = setInterval(async () => {
+//    game();
+//    console.log(id);
+//   }, 20000);
+
 // Run Game Loop
 let phase_start_time = Date.now();
 const pat = setInterval(async () => {
   await loopUpdate();
   isTypedArray;
-}, 16000);
+}, 20000);
 
 const messages_list = [];
 let live_bettors_table = [];
 let betting_phase = false;
-let game_phase = false;
 let cashout_phase = true;
 let game_crash_value = -69;
 let sent_cashout = true;
@@ -627,6 +657,21 @@ const loopUpdate = async () => {
       sent_cashout = true;
       right_now = Date.now();
       const update_loop = await Game_loop.findById(GAME_LOOP_ID);
+
+      let updaetData = {
+        gameCrash: resultCard,
+        active_player_id_list: live_bettors_table,
+      };
+      const updateGameLoop = await gameLoopModel.findOneAndUpdate(
+        { _id: id },
+        { $set: updaetData },
+        {
+          new: true,
+        }
+      );
+
+      // console.log(updateGameLoop);
+
       await update_loop.updateOne({
         $push: { previous_crashes: resultCard },
       });
@@ -660,8 +705,8 @@ const loopUpdate = async () => {
 
       io.emit("update_user");
       let theLoop = await Game_loop.findById(GAME_LOOP_ID);
-      const roundIdList = theLoop.round_id_list.reverse().slice(0, 15);
-      const crashesList1 = theLoop.previous_crashes.reverse().slice(0, 15);
+      const roundIdList = theLoop.round_id_list.reverse().slice(0, 25);
+      const crashesList1 = theLoop.previous_crashes.reverse().slice(0, 25);
 
       io.emit("crash_history", crashesList1);
       io.emit("get_round_id_list", roundIdList);

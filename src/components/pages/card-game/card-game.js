@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 import Modal from "../../modal/Modal";
 import { ToastContainer, toast } from "react-toastify";
 import { Slide } from "react-toastify";
-import io from "socket.io-client";
+import  io from "socket.io-client";
 import Axios from "axios";
 import "react-toastify/dist/ReactToastify.css";
 import blackCard from "../../../images/blackCard.png";
@@ -15,6 +15,7 @@ import { Link } from "react-router-dom";
 
 function CardGame() {
   const [registerUsername, setRegisterUsername] = useState("");
+  const [registerEmail, setRegisterEmail] = useState("");
   const [registerPassword, setRegisterPassword] = useState("");
   const [loginUsername, setLoginUsername] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
@@ -34,6 +35,7 @@ function CardGame() {
   const [crashHistory, setCrashHistory] = useState([]);
   const [roundIdList, setRoundIdList] = useState([]);
   const [bBettingPhase, setbBettingPhase] = useState(false);
+  const [startGameLoop, setStartGameLoop] = useState(false);
   const [bettingPhaseTime, setBettingPhaseTime] = useState(-1);
   const [bBetForNextRound, setbBetForNextRound] = useState(false);
   const [hookToNextRoundBet, setHookToNextRoundBet] = useState(false);
@@ -55,23 +57,20 @@ function CardGame() {
 
   // const multiplierCount = useRef([]);
   // const timeCount_xaxis = useRef([]);
-  //  console.log(resultCard)
- // https://139.59.36.115:4000/get_chat_history
+  //  console.log(startGameLoop)
+  // http://localhost:4000/get_chat_history
 
   // Socket.io setup
   useEffect(() => {
     retrieve();
-    const socket = io.connect("https://139.59.36.115:4000");
+    const socket = io.connect("http://localhost:4000");
     setGlobalSocket(socket);
 
     socket.on("news_by_server", function (data) {
       setAnnouncement(data);
     });
 
-    // socket.on("start_multiplier_count", function (data) {
-    //   setGlobalTimeNow(Date.now());
-    //   setLiveMultiplierSwitch(true);
-    // });
+    socket.emit("callGameloop", startGameLoop);
 
     socket.on("randomCardColor", function (data) {
       // console.log(data);
@@ -145,6 +144,7 @@ function CardGame() {
       socket.disconnect();
     };
   }, []);
+  // Socket.emit("callGameloop", startGameLoop);
 
   // Define useEffects
   useEffect(() => {
@@ -181,7 +181,9 @@ function CardGame() {
         setBettingPhaseTime(time_remaining);
         if (time_remaining < 0) {
           setbBettingPhase(false);
+          setStartGameLoop(true);
         }
+        // console.log(time_remaining);
       }, 100);
     }
     return () => {
@@ -223,14 +225,15 @@ function CardGame() {
   useEffect(() => {}, [liveBettingTable]);
 
   // Routes
-  const API_BASE = "https://139.59.36.115:4000";
+  const API_BASE = "http://localhost:4000";
   const register = async () => {
     try {
       const res = await Axios({
         method: "post",
-        url: "https://139.59.36.115:4000/register",
+        url: "http://localhost:4000/register",
         data: {
           username: registerUsername,
+          userEmail: registerEmail,
           password: registerPassword,
         },
         withCredentials: true,
@@ -251,7 +254,7 @@ function CardGame() {
             password: registerPassword,
           },
           withCredentials: true,
-          url: "https://139.59.36.115:4000/login",
+          url: "http://localhost:4000/login",
         });
 
         // console.log(res1);
@@ -279,8 +282,10 @@ function CardGame() {
           password: loginPassword,
         },
         withCredentials: true,
-        url: "https://139.59.36.115:4000/login",
+        url: "http://localhost:4000/login",
       });
+
+      // console.log(res);
 
       if (res) {
         setAuthResponseMessage(res.data);
@@ -503,7 +508,7 @@ function CardGame() {
         withCredentials: true,
       });
 
-      console.log(res);
+      // console.log(res);
     } catch (error) {
       console.log(error);
     }
@@ -515,7 +520,7 @@ function CardGame() {
         withCredentials: true,
       });
 
-      console.log(res);
+      // console.log(res);
     } catch (error) {
       console.log(error);
     }
@@ -673,8 +678,17 @@ function CardGame() {
               />
             </div>
             <div className="form-group">
+              <label>Email: </label>
+              <input
+                type="email"
+                placeholder="Enter your email"
+                onChange={(e) => setRegisterEmail(e.target.value)}
+              />
+            </div>
+            <div className="form-group">
               <label>Password:</label>
               <input
+                type="password"
                 placeholder="Enter your password"
                 onChange={(e) => setRegisterPassword(e.target.value)}
               />
@@ -1019,7 +1033,7 @@ function CardGame() {
                 {/* <div className="col col-3">Streak</div> */}
               </li>
               {crashHistory
-                .slice(0, 15)
+                // .slice(0, 25)
                 // .reverse()
                 .map((crash, index, array) => {
                   return (

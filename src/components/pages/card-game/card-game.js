@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 import Modal from "../../modal/Modal";
 import { ToastContainer, toast } from "react-toastify";
 import { Slide } from "react-toastify";
-import  io from "socket.io-client";
+import io from "socket.io-client";
 import Axios from "axios";
 import "react-toastify/dist/ReactToastify.css";
 import blackCard from "../../../images/blackCard.png";
@@ -54,16 +54,12 @@ function CardGame() {
   const [resultCard, setResultCard] = useState("");
   // const [streakList, setStreakList] = useState([]);
   const [tenNumbers, setTenNumbers] = useState([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
-
-  // const multiplierCount = useRef([]);
-  // const timeCount_xaxis = useRef([]);
   //  console.log(startGameLoop)
-  // http://139.59.65.179:4000/get_chat_history
 
   // Socket.io setup
   useEffect(() => {
     retrieve();
-    const socket = io.connect("http://139.59.65.179:4000");
+    const socket = io.connect("http://localhost:4000");
     setGlobalSocket(socket);
 
     socket.on("news_by_server", function (data) {
@@ -86,14 +82,12 @@ function CardGame() {
 
     socket.on("crash_history", function (data) {
       setCrashHistory(data);
-
-      // console.log(data);
+      console.log(data);
 
       // let temp_streak_list = [];
       // const new_data = data;
       // let blue_counter = 0;
       // let red_counter = 0;
-
       // for (let i = 0; i < data.length; i++) {
       //   if (new_data[i] >= 2) {
       //     blue_counter += 1;
@@ -109,7 +103,7 @@ function CardGame() {
     });
 
     socket.on("get_round_id_list", function (data) {
-      // console.log(data);
+      console.log(data);
       setRoundIdList(data);
     });
 
@@ -120,7 +114,6 @@ function CardGame() {
       setLiveBettingTable(null);
       setHookToNextRoundBet(true);
       retrieve_active_bettors_list();
-
       // multiplierCount.current = [];
       // timeCount_xaxis.current = [];
     });
@@ -176,14 +169,13 @@ function CardGame() {
     if (bBettingPhase) {
       bettingInterval = setInterval(() => {
         let time_elapsed = (Date.now() - globalTimeNow) / 1000.0;
-        // console.log(time_elapsed);
+        // console.log((Date.now() - globalTimeNow) / 1000.0);
         let time_remaining = (30 - time_elapsed).toFixed(2);
         setBettingPhaseTime(time_remaining);
         if (time_remaining < 0) {
           setbBettingPhase(false);
           setStartGameLoop(true);
         }
-        // console.log(time_remaining);
       }, 100);
     }
     return () => {
@@ -208,12 +200,12 @@ function CardGame() {
     getUser();
     setChartSwitch(true);
     setStartTime(Date.now());
-    let getChatHistoryTimer = setTimeout(() => get_chat_history(), 1000);
+    let getChatHistoryTimer = setTimeout(() => get_chat_history(), 6000);
     let getActiveBettorsTimer = setTimeout(
       () => retrieve_active_bettors_list(),
       1000
     );
-    let getBetHistory = setTimeout(() => retrieve_bet_history(), 1000);
+    let getBetHistory = setTimeout(() => retrieve_bet_history(), 5000);
 
     return () => {
       clearTimeout(getChatHistoryTimer);
@@ -225,12 +217,12 @@ function CardGame() {
   useEffect(() => {}, [liveBettingTable]);
 
   // Routes
-  const API_BASE = "http://139.59.65.179:4000";
+  const API_BASE = "http://localhost:4000";
   const register = async () => {
     try {
       const res = await Axios({
         method: "post",
-        url: "http://139.59.65.179:4000/register",
+        url: "http://localhost:4000/register",
         data: {
           username: registerUsername,
           userEmail: registerEmail,
@@ -238,9 +230,7 @@ function CardGame() {
         },
         withCredentials: true,
       });
-
       // console.log(res);
-
       if (res) {
         setAuthResponseMessage(res.data);
 
@@ -254,9 +244,8 @@ function CardGame() {
             password: registerPassword,
           },
           withCredentials: true,
-          url: "http://139.59.65.179:4000/login",
+          url: "http://localhost:4000/login",
         });
-
         // console.log(res1);
         if (res1) {
           setAuthResponseMessage(res1.data);
@@ -282,11 +271,9 @@ function CardGame() {
           password: loginPassword,
         },
         withCredentials: true,
-        url: "http://139.59.65.179:4000/login",
+        url: "http://localhost:4000/login",
       });
-
       // console.log(res);
-
       if (res) {
         setAuthResponseMessage(res.data);
         getUser();
@@ -308,8 +295,7 @@ function CardGame() {
         withCredentials: true,
         url: API_BASE + "/user",
       });
-      // console.log(res);
-
+      console.log(res);
       if (res) {
         setUserData(res.data);
       }
@@ -337,6 +323,7 @@ function CardGame() {
       const res = await Axios.get(API_BASE + "/multiply", {
         withCredentials: true,
       });
+      console.log(res);
 
       if (res) {
         if (res.data !== "No User Authentication") {
@@ -387,9 +374,7 @@ function CardGame() {
         withCredentials: true,
         url: API_BASE + "/send_bet",
       });
-
       // console.log(res);
-
       if (res) {
         setBetActive(true);
         userData.balance -= betAmount;
@@ -405,6 +390,7 @@ function CardGame() {
       const res = await Axios.get(API_BASE + "/calculate_winnings", {
         withCredentials: true,
       });
+      console.log(res);
 
       if (res) {
         getUser();
@@ -440,6 +426,7 @@ function CardGame() {
         withCredentials: true,
       });
 
+      console.log(res)
       if (res) {
         setUserData(res.data);
         setBetActive(false);
@@ -454,6 +441,7 @@ function CardGame() {
       let res = await Axios.get(API_BASE + "/auto_cashout_early", {
         withCredentials: true,
       });
+      console.log(res);
 
       if (res) {
         setUserData(res.data);
@@ -492,7 +480,6 @@ function CardGame() {
       const res = await Axios.get(API_BASE + "/get_chat_history", {
         withCredentials: true,
       });
-
       // console.log(res)
       if (res) {
         setChatHistory(res.data.reverse());
@@ -507,7 +494,6 @@ function CardGame() {
       const res = await Axios.get(API_BASE + "/retrieve_active_bettors_list", {
         withCredentials: true,
       });
-
       // console.log(res);
     } catch (error) {
       console.log(error);
@@ -519,7 +505,6 @@ function CardGame() {
       const res = await Axios.get(API_BASE + "/retrieve_bet_history", {
         withCredentials: true,
       });
-
       // console.log(res);
     } catch (error) {
       console.log(error);
@@ -608,7 +593,6 @@ function CardGame() {
   };
 
   // const temp_time = Date.now();
-
   useEffect(() => {
     const temp_interval = setInterval(() => {
       setChartSwitch(false);
@@ -1085,7 +1069,9 @@ function CardGame() {
                               {message.bet_amount}
                             </div>
                             <div className="col col-3">
-                              {selectedCard ? selectedCard : "--"}
+                              {message.cashout_multiplier
+                                ? message.cashout_multiplier
+                                : "--"}
                             </div>
                             <div className="col col-4">
                               {message.profit

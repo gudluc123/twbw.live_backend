@@ -9,27 +9,25 @@ const bcrypt = require("bcryptjs");
 const session = require("express-session");
 const app = express();
 const User = require("./src/models/user");
-const Game_loop = require("./src/models/game_loop");
 require("dotenv").config();
-
-const GAME_LOOP_ID = "63a18010136c7f925346c6c0";
-
 const { Server } = require("socket.io");
 const http = require("http");
-const Stopwatch = require("statman-stopwatch");
 const { update } = require("./src/models/user");
 const { isTypedArray } = require("util/types");
 const userLogInRecord = require("./src/models/userLogInRecord");
 const userGameLog = require("./src/models/userGameLog");
-// const { route } = require("./src/");
 const route = require("./src/routes/route");
 const gameLoopModel = require("./src/models/gameLoopModel");
-
+const Game_loop = require("./src/models/game_loop");
+const Stopwatch = require("statman-stopwatch");
 const sw = new Stopwatch(true);
+var id;
+
+var GAME_LOOP_ID = GAME_LOOP_ID ? GAME_LOOP_ID : "63bfe3db034c364c7036bedb";
 
 let PASSPORT_SECRET = "Siamaq@9";
 let MONGOOSE_DB_LINK =
-  "mongodb+srv://siamaqConsultancy:siamaqAdmin@siamaqdatabase.obfed2x.mongodb.net/bustabitClone";
+  "mongodb+srv://siamaqConsultancy:siamaqAdmin@siamaqdatabase.obfed2x.mongodb.net/bustabitClone2";
 
 // Start Socket.io Server
 const server = http.createServer(app);
@@ -45,8 +43,8 @@ io.on("connection", (socket) => {
   console.log("socket.io: User connected: ", socket.id);
 
   socket.on("callGameloop", function (data) {
-    // console.log(data)
-    // if(data === true){
+    // console.log(data);
+    // if (data === true) {
     //   game();
     // }
     //   setGlobalTimeNow(Date.now());
@@ -92,10 +90,7 @@ require("./passportConfig")(passport);
 // Passport.js login/register system
 app.post("/login", (req, res, next) => {
   try {
-    // console.log(req.ip)
     passport.authenticate("local", (err, user, info) => {
-      // console.log(user)
-
       if (err) throw err;
       if (!user) {
         res.send("Username or Password is Wrong");
@@ -113,7 +108,6 @@ app.post("/login", (req, res, next) => {
             logInStatus: true,
           };
           const userLog = await userLogInRecord.create(logData);
-
           res.send("Login Successful");
         });
       }
@@ -150,49 +144,26 @@ app.post("/register", async (req, res) => {
   }
 });
 
-let id;
 let game_phase = false;
-// console.log(game_phase);
+// console.log(id);
 let game = async () => {
-  // const requestBody = req.body;
-  // const {
-  //   active_player_id_list,
-  //   gameCrash,
-  //   b_betting_phase,
-  //   b_game_phase,
-  //   b_cashout_phase,
-  //   timeNow,
-  //   // roundId,
-  //   round_id_list,
-  //   chat_messages_list,
-  // } = requestBody;
-
   let gameLoopList = await gameLoopModel.find().count();
 
   const gameData = {
     active_player_id_list: live_bettors_table,
-    gameCrash: resultCard,
+    // gameCrash: resultCard,
     b_betting_phase: betting_phase,
     b_game_phase: game_phase,
     b_cashout_phase: cashout_phase,
     roundId: gameLoopList + 1,
     chat_messages_list: messages_list,
   };
-
   const game = await gameLoopModel.create(gameData);
 
   id = game._id;
-  // console.log(game);
-  // return res
-  //   .status(201)
-  //   .send({ status: true, message: "Success", data: game });
-  // }
+  GAME_LOOP_ID = game._id;
+  console.log(game);
 };
-
-if (game_phase === true) {
-  game();
-  // console.log(id);
-}
 
 // Routes
 app.get("/", (req, res) => {
@@ -228,7 +199,7 @@ app.get("/logout", (req, res, next) => {
 app.get("/multiply", checkAuthenticated, async (req, res) => {
   try {
     const thisUser = await User.findById(req.user._id);
-    const game_loop = await Game_loop.findById(GAME_LOOP_ID);
+    const game_loop = await gameLoopModel.findById(GAME_LOOP_ID);
     crashMultipler = game_loop.multiplier_crash;
     thisUser.balance = thisUser.balance + 2;
     await thisUser.save();
@@ -241,7 +212,7 @@ app.get("/multiply", checkAuthenticated, async (req, res) => {
 app.get("/generate_crash_value", async (req, res) => {
   try {
     const randomInt = Math.floor(Math.random() * 6) + 1;
-    const game_loop = await Game_loop.findById(GAME_LOOP_ID);
+    const game_loop = await gameLoopModel.findById(GAME_LOOP_ID);
     game_loop.multiplier_crash = resultCard;
     await game_loop.save();
     res.json(randomInt);
@@ -252,15 +223,14 @@ app.get("/generate_crash_value", async (req, res) => {
 
 app.get("/retrieve", async (req, res) => {
   try {
-    const game_loop = await Game_loop.findById(GAME_LOOP_ID);
-    crashMultipler = game_loop.multiplier_crash;
+    const game_loop = await gameLoopModel.findById(GAME_LOOP_ID);
+    crashMultipler = game_loop.gameCrash;
     // console.log(crashMultipler)
     res.json(crashMultipler);
     const delta = sw.read(2);
     // console.log(delta)
     let seconds = delta / 1000.0;
     seconds = seconds.toFixed(2);
-    // console.log(seconds)
     return;
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
@@ -274,14 +244,11 @@ app.post("/send_bet", checkAuthenticated, async (req, res) => {
       res.status(400).json({ customError: "IT IS NOT THE BETTING PHASE" });
       return;
     }
-    if (
-      isNaN(req.body.bet_amount) == true
-      // isNaN(req.body.payout_multiplier) == true
-    ) {
+    if (isNaN(req.body.bet_amount) == true) {
       res.status(400).json({ customError: "Not a number" });
     }
     bDuplicate = false;
-    theLoop = await Game_loop.findById(GAME_LOOP_ID);
+    theLoop = await gameLoopModel.findById(GAME_LOOP_ID);
     playerIdList = theLoop.active_player_id_list;
     let now = Date.now();
     for (let i = 0; i < playerIdList.length; i++) {
@@ -316,7 +283,7 @@ app.post("/send_bet", checkAuthenticated, async (req, res) => {
       the_user_id: req.user.id,
       the_username: req.user.username,
       bet_amount: req.body.bet_amount,
-      cashout_multiplier: null,
+      cashout_multiplier: req.body.payout_multiplier,
       profit: null,
       b_bet_live: true,
     };
@@ -326,7 +293,7 @@ app.post("/send_bet", checkAuthenticated, async (req, res) => {
     // User Game Record
     const userGameData = {
       userId: thisUser._id,
-      roundId: theLoop["round_id_list"].length,
+      roundId: theLoop["roundId"],
       cardSelected: req.body.payout_multiplier,
       betAmount: req.body.bet_amount,
       // resultCard: resultCard,
@@ -343,8 +310,9 @@ app.post("/send_bet", checkAuthenticated, async (req, res) => {
 
 app.get("/calculate_winnings", checkAuthenticated, async (req, res) => {
   try {
-    let theLoop = await Game_loop.findById(GAME_LOOP_ID);
-    playerIdList = theLoop.active_player_id_list;
+    let theLoop = await gameLoopModel.findById(GAME_LOOP_ID);
+    playerIdList = theLoop.active_player_id_list.map((e) => e.the_user_id);
+    // playerIdList = theLoop.active_player_id_list;
     crash_number = theLoop.resultCard;
     for (const playerId of playerIdList) {
       const currUser = await User.findById(playerId);
@@ -364,13 +332,19 @@ app.get("/calculate_winnings", checkAuthenticated, async (req, res) => {
 // Game Status
 app.get("/get_game_status", async (req, res) => {
   try {
-    let theLoop = await Game_loop.findById(GAME_LOOP_ID);
-    const crashes = theLoop.previous_crashes.reverse().slice(0, 25);
-    const roundId = theLoop.round_id_list.reverse().slice(0, 25);
+    // let theLoop = await gameLoopModel.findById(GAME_LOOP_ID);
+    let theLoop = await gameLoopModel.find().sort({ roundId: -1 }).limit(50);
+    // console.log(theLoop);
+    let crashlist = [];
+    let roundIdList = [];
+
+    for (let i = 0; i < theLoop.length; i++) {
+      roundIdList.push(theLoop[i]["roundId"]);
+      crashlist.push(theLoop[i]["gameCrash"]);
+    }
     // console.log(roundId)
-    io.emit("crash_history", crashes);
-    io.emit("get_round_id_list", roundId);
-    // console.log(phase_start_time)
+    io.emit("crash_history", crashlist);
+    io.emit("get_round_id_list", roundIdList);
     if (betting_phase == true) {
       res.json({ phase: "betting_phase", info: phase_start_time });
       return;
@@ -388,12 +362,14 @@ app.get("/manual_cashout_early", checkAuthenticated, async (req, res) => {
     if (!game_phase) {
       return;
     }
-    theLoop = await Game_loop.findById(GAME_LOOP_ID);
+    theLoop = await gameLoopModel.findById(GAME_LOOP_ID);
     let time_elapsed = (Date.now() - phase_start_time) / 1000.0;
     current_multiplier = (1.0024 * Math.pow(1.0718, time_elapsed)).toFixed(2);
+    playerIdList = theLoop.active_player_id_list.map((e) => e.the_user_id);
+
     if (
       current_multiplier == resultCard &&
-      theLoop.active_player_id_list.includes(req.user.id)
+      playerIdList.includes(req.user.id)
     ) {
       const currUser = await User.findById(req.user.id);
       currUser.balance += currUser.bet_amount * 2;
@@ -426,12 +402,14 @@ app.get("/auto_cashout_early", checkAuthenticated, async (req, res) => {
     if (!game_phase) {
       return;
     }
-    theLoop = await Game_loop.findById(GAME_LOOP_ID);
+    theLoop = await gameLoopModel.findById(GAME_LOOP_ID);
     let time_elapsed = (Date.now() - phase_start_time) / 1000.0;
     current_multiplier = (1.0024 * Math.pow(1.0718, time_elapsed)).toFixed(2);
+    playerIdList = theLoop.active_player_id_list.map((e) => e.the_user_id);
+
     if (
       req.user.payout_multiplier == resultCard &&
-      theLoop.active_player_id_list.includes(req.user.id)
+      playerIdList.includes(req.user.id)
     ) {
       const currUser = await User.findById(req.user.id);
       currUser.balance += currUser.bet_amount * 2;
@@ -472,8 +450,8 @@ app.post("/send_message_to_chatbox", checkAuthenticated, async (req, res) => {
       }),
       the_date: new Date().toLocaleDateString(),
     };
-    theLoop = await Game_loop.findById(GAME_LOOP_ID);
-    const somevar = await Game_loop.findOneAndUpdate(
+    theLoop = await gameLoopModel.findById(GAME_LOOP_ID);
+    const somevar = await gameLoopModel.findOneAndUpdate(
       { _id: GAME_LOOP_ID },
       { $push: { chat_messages_list: message_json } }
     );
@@ -492,8 +470,10 @@ app.post("/send_message_to_chatbox", checkAuthenticated, async (req, res) => {
 // Chat History
 app.get("/get_chat_history", async (req, res) => {
   try {
-    theLoop = await Game_loop.findById(GAME_LOOP_ID);
-    res.json(theLoop.chat_messages_list.reverse().slice(0, 50));
+    theLoop = await gameLoopModel.findById(GAME_LOOP_ID);
+    res.json(
+      theLoop.chat_messages_list.reverse() //.slice(0, 50)
+    );
     return;
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
@@ -513,10 +493,14 @@ app.get("/retrieve_active_bettors_list", async (req, res) => {
 // Bet History
 app.get("/retrieve_bet_history", async (req, res) => {
   try {
-    let theLoop = await Game_loop.findById(GAME_LOOP_ID);
-    const crashesList = theLoop.previous_crashes.reverse().slice(0, 15);
+    // let theLoop = await gameLoopModel.findById(GAME_LOOP_ID);
+    let theLoop = await gameLoopModel.find().sort({ roundId: -1 }).limit(50);
+    let crashList1 = [];
 
-    io.emit("crash_history", crashesList);
+    for (let i = 0; i < theLoop.length; i++) {
+      crashList1.push(theLoop[i]["gameCrash"]);
+    }
+    io.emit("crash_history", crashList1);
     return;
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
@@ -545,8 +529,9 @@ server.listen(4000, () => {
 });
 
 const cashout = async () => {
-  theLoop = await Game_loop.findById(GAME_LOOP_ID);
-  playerIdList = theLoop.active_player_id_list;
+  theLoop = await gameLoopModel.findById(GAME_LOOP_ID);
+  // console.log(theLoop);
+  playerIdList = theLoop.active_player_id_list.map((e) => e.the_user_id);
   // crash_number = game_crash_value;
   for (const playerId of playerIdList) {
     const currUser = await User.findById(playerId);
@@ -558,11 +543,6 @@ const cashout = async () => {
   theLoop.active_player_id_list = [];
   await theLoop.save();
 };
-
-// const pat1 = setInterval(async () => {
-//    game();
-//    console.log(id);
-//   }, 20000);
 
 // Run Game Loop
 let phase_start_time = Date.now();
@@ -582,8 +562,6 @@ let resultCard;
 // Game Loop Update After Result Card
 const loopUpdate = async () => {
   let time_elapsed = (Date.now() - phase_start_time) / 1000.0;
-
-  // console.log(time_elapsed);
 
   if (betting_phase) {
     if (time_elapsed > 6) {
@@ -653,44 +631,42 @@ const loopUpdate = async () => {
     // }
   } else if (cashout_phase) {
     if (!sent_cashout) {
-      cashout();
       sent_cashout = true;
       right_now = Date.now();
-      const update_loop = await Game_loop.findById(GAME_LOOP_ID);
+      const update_loop = await gameLoopModel.findById(GAME_LOOP_ID);
 
       let updaetData = {
         gameCrash: resultCard,
         active_player_id_list: live_bettors_table,
       };
       const updateGameLoop = await gameLoopModel.findOneAndUpdate(
-        { _id: id },
+        { _id: GAME_LOOP_ID },
         { $set: updaetData },
         {
           new: true,
         }
       );
-
-      // console.log(updateGameLoop);
+      console.log(updateGameLoop);
 
       await update_loop.updateOne({
         $push: { previous_crashes: resultCard },
       });
       // await update_loop.updateOne({ $unset: { "previous_crashes.0": 1 } });
       // await update_loop.updateOne({ $pull: { previous_crashes: null } });
-      const the_round_id_list = update_loop.round_id_list;
-      await update_loop.updateOne({
-        $push: {
-          round_id_list: the_round_id_list[the_round_id_list.length - 1] + 1,
-        },
-      });
+      // const the_round_id_list = update_loop.round_id_list;
+      // await update_loop.updateOne({
+      //   $push: {
+      //     round_id_list: the_round_id_list[the_round_id_list.length - 1] + 1,
+      //   },
+      // });
       // await update_loop.updateOne({ $unset: { "round_id_list.0": 1 } });
       // await update_loop.updateOne({ $pull: { round_id_list: null } });
+      cashout();
     }
 
     if (time_elapsed > 3) {
       cashout_phase = false;
       betting_phase = true;
-
       // let randomInt = Math.floor(Math.random() * (9999999999 - 0 + 1) + 0);
       // if (randomInt % 33 == 0) {
       //   game_crash_value = 1;
@@ -702,18 +678,23 @@ const loopUpdate = async () => {
       //   // game_crash_value = 0.01 + 0.99 / random_int_0_to_1;
       //   // game_crash_value = Math.round(game_crash_value * 100) / 100;
       // }
-
       io.emit("update_user");
-      let theLoop = await Game_loop.findById(GAME_LOOP_ID);
-      const roundIdList = theLoop.round_id_list.reverse().slice(0, 25);
-      const crashesList1 = theLoop.previous_crashes.reverse().slice(0, 25);
 
-      io.emit("crash_history", crashesList1);
-      io.emit("get_round_id_list", roundIdList);
+      let crashList2 = [];
+      let roundIdList2 = [];
+      let theLoop = await gameLoopModel.find().sort({ roundId: -1 }).limit(50);
+      for (let i = 0; i < theLoop.length; i++) {
+        roundIdList2.push(theLoop[i]["roundId"]);
+        crashList2.push(theLoop[i]["gameCrash"]);
+      }
+
+      io.emit("crash_history", crashList2);
+      io.emit("get_round_id_list", roundIdList2);
       io.emit("start_betting_phase");
       io.emit("testingvariable");
       live_bettors_table = [];
       phase_start_time = Date.now();
+      game();
     }
   }
 };

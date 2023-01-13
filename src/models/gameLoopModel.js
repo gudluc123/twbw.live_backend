@@ -8,6 +8,7 @@ const gameLoop = new mongoose.Schema(
 
     gameCrash: {
       type: String,
+      default: null,
     },
 
     b_betting_phase: {

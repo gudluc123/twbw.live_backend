@@ -18,6 +18,10 @@ const userGameLogSchema = new mongoose.Schema(
       type: Number,
     },
 
+    remainingAmount: {
+      type: Number,
+    },
+
     resultCard: {
       type: String,
     },

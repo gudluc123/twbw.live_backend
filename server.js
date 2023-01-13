@@ -42,15 +42,6 @@ io.on("connection", (socket) => {
   socket.on("clicked", (data) => {});
   console.log("socket.io: User connected: ", socket.id);
 
-  socket.on("callGameloop", function (data) {
-    // console.log(data);
-    // if (data === true) {
-    //   game();
-    // }
-    //   setGlobalTimeNow(Date.now());
-    //   setLiveMultiplierSwitch(true);
-  });
-
   socket.on("disconnect", () => {
     console.log("socket.io: User disconnected: ", socket.id);
   });
@@ -162,7 +153,7 @@ let game = async () => {
 
   id = game._id;
   GAME_LOOP_ID = game._id;
-  console.log(game);
+  // console.log(game);
 };
 
 // Routes
@@ -296,7 +287,7 @@ app.post("/send_bet", checkAuthenticated, async (req, res) => {
       roundId: theLoop["roundId"],
       cardSelected: req.body.payout_multiplier,
       betAmount: req.body.bet_amount,
-      // resultCard: resultCard,
+      remainingAmount: thisUser.balance - req.body.bet_amount,
       timeStamp: Date.now(),
     };
     const userGameRecordData = await userGameLog.create(userGameData);
@@ -646,7 +637,7 @@ const loopUpdate = async () => {
           new: true,
         }
       );
-      console.log(updateGameLoop);
+      // console.log(updateGameLoop);
 
       await update_loop.updateOne({
         $push: { previous_crashes: resultCard },
@@ -698,13 +689,3 @@ const loopUpdate = async () => {
     }
   }
 };
-
-// const updateUserGameLog = await userGameLog.updateOne(
-//   { _id: userGameLogId },
-//   {
-//     roundId: the_round_id_list[the_round_id_list.length - 1] + 1,
-//     resultCard: resultCard,
-//   },
-//   { new: true }
-// );
-// console.log(updateUserGameLog);

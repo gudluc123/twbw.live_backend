@@ -1,11 +1,9 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-unused-vars */
-import React, { useEffect, useState, useRef } from "react";
-import { v4 as uuidv4 } from "uuid";
+import React, { useEffect, useState } from "react";
 import Modal from "../../modal/Modal";
 import { ToastContainer, toast } from "react-toastify";
 import { Slide } from "react-toastify";
-// import io from "socket.io-client";
 import Axios from "axios";
 import "react-toastify/dist/ReactToastify.css";
 import blackCard from "../../../images/blackCard.png";
@@ -14,6 +12,7 @@ import { Link } from "react-router-dom";
 import ChatMessage from "../chat-message-page/ChatMessage";
 import GameHistory from "../game-history-page/GameHistory";
 import { socket } from "../../socket-io-connection/socket";
+import LiveBettinTable from "../live-betting-table/LiveBettinTable";
 
 function CardGame() {
   const [registerUsername, setRegisterUsername] = useState("");
@@ -38,7 +37,6 @@ function CardGame() {
   const [bettingPhaseTime, setBettingPhaseTime] = useState(-1);
   const [bBetForNextRound, setbBetForNextRound] = useState(false);
   const [hookToNextRoundBet, setHookToNextRoundBet] = useState(false);
-  const [liveBettingTable, setLiveBettingTable] = useState();
   const [errorMessage, setErrorMessage] = useState("");
   const [authResponseMessage, setAuthResponseMessage] = useState("");
   const [globalTimeNow, setGlobalTimeNow] = useState(0);
@@ -47,12 +45,10 @@ function CardGame() {
   const [startTime, setStartTime] = useState();
   const [selectedCard, setSelectedCard] = useState("");
   const [resultCard, setResultCard] = useState("");
-  const [tenNumbers, setTenNumbers] = useState([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
 
   // Socket.io setup
   useEffect(() => {
     retrieve();
-    // const socket = io.connect("http://localhost:4000");
     setGlobalSocket(socket);
 
     socket.on("news_by_server", function (data) {
@@ -75,18 +71,8 @@ function CardGame() {
       setGlobalTimeNow(Date.now());
       setLiveMultiplier("Starting...");
       setbBettingPhase(true);
-      setLiveBettingTable(null);
       setHookToNextRoundBet(true);
       retrieve_active_bettors_list();
-      // multiplierCount.current = [];
-      // timeCount_xaxis.current = [];
-    });
-
-    socket.on("receive_live_betting_table", (data) => {
-      // console.log(data);
-      setLiveBettingTable(data);
-      data = JSON.parse(data);
-      setTenNumbers(Array(10 - data.length).fill(2));
     });
 
     socket.on("connect_error", (error) => {
@@ -132,7 +118,6 @@ function CardGame() {
         setBettingPhaseTime(time_remaining);
         if (time_remaining < 0) {
           setbBettingPhase(false);
-          // setStartGameLoop(true);
         }
       }, 100);
     }
@@ -167,8 +152,6 @@ function CardGame() {
       clearTimeout(getBetHistory);
     };
   }, []);
-
-  useEffect(() => {}, [liveBettingTable]);
 
   // Routes
   const API_BASE = "http://localhost:4000";
@@ -856,76 +839,7 @@ function CardGame() {
         </div>
         <ChatMessage />
         <GameHistory />
-        <div className="grid-elements">
-          Live Bets Tracker
-          <ul className="active-bet-table">
-            <li className="active-bet-table-header">
-              <div className="col col-1">User</div>
-              <div className="col col-2">Bet Amount</div>
-              <div className="col col-3">Selected Card</div>
-              <div className="col col-4">Profit</div>
-            </li>
-          </ul>
-          <div>
-            {liveBettingTable && liveBettingTable !== "[]" ? (
-              <>
-                {JSON.parse(liveBettingTable).map((message, index) => {
-                  return (
-                    <div className="container-crash-history" key={index}>
-                      <ul className="active-bet-table">
-                        <div className="row-bet-wrapper" key={uuidv4()}>
-                          <li
-                            className={
-                              message.cashout_multiplier
-                                ? "table-row-green"
-                                : "table-row-blue"
-                            }
-                          >
-                            <div className="col col-1">
-                              {message.the_username}{" "}
-                            </div>
-                            <div className="col col-2">
-                              {message.bet_amount}
-                            </div>
-                            <div className="col col-3">
-                              {message.cashout_multiplier
-                                ? message.cashout_multiplier
-                                : "--"}
-                            </div>
-                            <div className="col col-4">
-                              {message.profit
-                                ? message.profit.toFixed(2)
-                                : "--"}
-                            </div>
-                          </li>
-                        </div>
-                      </ul>
-                    </div>
-                  );
-                })}
-              </>
-            ) : (
-              ""
-            )}
-            <div className="container-crash-history">
-              <ul className="active-bet-table">
-                {tenNumbers.map((someNumber, index, array) => {
-                  return (
-                    <div className="row-bet-wrapper" key={uuidv4()}>
-                      <li className={"table-row-blue"}>
-                        <div className="col col-1">-- </div>
-                        <div className="col col-2">--</div>
-                        <div className="col col-3">--</div>
-                        <div className="col col-4">--</div>
-                      </li>
-                    </div>
-                  );
-                })}
-              </ul>
-            </div>
-            <div></div>
-          </div>
-        </div>
+        <LiveBettinTable />
       </div>
     </div>
   );

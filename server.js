@@ -219,7 +219,6 @@ app.get("/retrieve", async (req, res) => {
     // console.log(crashMultipler)
     res.json(crashMultipler);
     const delta = sw.read(2);
-    // console.log(delta)
     let seconds = delta / 1000.0;
     seconds = seconds.toFixed(2);
     return;
@@ -303,7 +302,6 @@ app.get("/calculate_winnings", checkAuthenticated, async (req, res) => {
   try {
     let theLoop = await gameLoopModel.findById(GAME_LOOP_ID);
     playerIdList = theLoop.active_player_id_list.map((e) => e.the_user_id);
-    // playerIdList = theLoop.active_player_id_list;
     crash_number = theLoop.resultCard;
     for (const playerId of playerIdList) {
       const currUser = await User.findById(playerId);
@@ -323,7 +321,6 @@ app.get("/calculate_winnings", checkAuthenticated, async (req, res) => {
 // Game Status
 app.get("/get_game_status", async (req, res) => {
   try {
-    // let theLoop = await gameLoopModel.findById(GAME_LOOP_ID);
     let theLoop = await gameLoopModel.find().sort({ roundId: -1 }).limit(50);
     // console.log(theLoop);
     let crashlist = [];
@@ -484,7 +481,6 @@ app.get("/retrieve_active_bettors_list", async (req, res) => {
 // Bet History
 app.get("/retrieve_bet_history", async (req, res) => {
   try {
-    // let theLoop = await gameLoopModel.findById(GAME_LOOP_ID);
     let theLoop = await gameLoopModel.find().sort({ roundId: -1 }).limit(50);
     let crashList1 = [];
 

@@ -8,7 +8,7 @@ export default function ChatMessage() {
   const [chatHistory, setChatHistory] = useState();
   const [errorMessage, setErrorMessage] = useState("");
   const [messageToTextBox, setMessageToTextBox] = useState("");
-  const API_BASE = "http://localhost:4000";
+  const API_BASE = "http://139.59.65.179:4000";
 
   // Socket.io setup
   useEffect(() => {

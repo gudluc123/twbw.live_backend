@@ -154,12 +154,12 @@ function CardGame() {
   }, []);
 
   // Routes
-  const API_BASE = "http://localhost:4000";
+  const API_BASE = "http://139.59.65.179:4000";
   const register = async () => {
     try {
       const res = await Axios({
         method: "post",
-        url: "http://localhost:4000/register",
+        url: "http://139.59.65.179:4000/register",
         data: {
           username: registerUsername,
           userEmail: registerEmail,
@@ -181,7 +181,7 @@ function CardGame() {
             password: registerPassword,
           },
           withCredentials: true,
-          url: "http://localhost:4000/login",
+          url: "http://139.59.65.179:4000/login",
         });
         // console.log(res1);
         if (res1) {
@@ -208,7 +208,7 @@ function CardGame() {
           password: loginPassword,
         },
         withCredentials: true,
-        url: "http://localhost:4000/login",
+        url: "http://139.59.65.179:4000/login",
       });
       // console.log(res);
       if (res) {

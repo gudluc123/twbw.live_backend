@@ -1,4 +1,5 @@
 const gameLoopModel = require("../models/gameLoopModel");
+const userGameLog = require("../models/userGameLog");
 
 const getGameHistory = async (req, res) => {
   try {
@@ -37,4 +38,27 @@ const getGameById = async (req, res) => {
   }
 };
 
-module.exports = { getGameHistory, getGameById };
+const getGameLogByRoundId = async (req, res) => {
+  try {
+    let roundId = req.params.gameId;
+    // roundId = roundId.trim();
+
+    const GameLog = await userGameLog
+      .find({ roundId: roundId })
+      .select("-__v ");
+
+    if (!GameLog.length) {
+      return res
+        .status(404)
+        .send({ status: false, message: "No User Bet For This Round!" });
+    }
+
+    return res
+      .status(200)
+      .send({ status: "true", message: "Success", data: GameLog });
+  } catch (error) {
+    return res.status(500).send({ status: false, message: error.message });
+  }
+};
+
+module.exports = { getGameHistory, getGameById, getGameLogByRoundId };

@@ -17,6 +17,8 @@ const { isTypedArray } = require("util/types");
 const userLogInRecord = require("./src/models/userLogInRecord");
 const userGameLog = require("./src/models/userGameLog");
 const route = require("./src/routes/route");
+const gameLoopRoute = require("./src/routes/gameLoopRoute");
+const userLogInRoute = require("./src/routes/userLogInRoute");
 const gameLoopModel = require("./src/models/gameLoopModel");
 const Game_loop = require("./src/models/game_loop");
 const Stopwatch = require("statman-stopwatch");
@@ -27,7 +29,7 @@ var GAME_LOOP_ID = GAME_LOOP_ID ? GAME_LOOP_ID : "63bfeaac7333cecf1030a29c";
 
 let PASSPORT_SECRET = "Siamaq@9";
 let MONGOOSE_DB_LINK =
-  "mongodb+srv://siamaqConsultancy:siamaqAdmin@siamaqdatabase.obfed2x.mongodb.net/bustabitClone2";
+  "mongodb+srv://siamaqConsultancy:siamaqAdmin@siamaqdatabase.obfed2x.mongodb.net/bustabitClone";
 
 // Start Socket.io Server
 const server = http.createServer(app);
@@ -520,6 +522,9 @@ function checkNotAuthenticated(req, res, next) {
 }
 
 app.use("/", route);
+app.use("/", gameLoopRoute);
+app.use("/", userLogInRoute);
+
 // Listen Server
 server.listen(4000, () => {
   console.log(`Server running on Port 4000`);

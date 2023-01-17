@@ -95,7 +95,7 @@ app.post("/login", (req, res, next) => {
             userName: user.username,
             host: req.hostname,
             ipAddress: req.ip,
-            timeStamp: Date.now(),
+            timeStamp: new Date(),
             logInStatus: true,
           };
           const userLog = await userLogInRecord.create(logData);

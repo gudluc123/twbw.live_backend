@@ -1,35 +1,39 @@
 const mongoose = require("mongoose");
 
-const userLogInSchema = new mongoose.Schema({
-  userId: {
-    type: mongoose.Types.ObjectId,
-    required: true,
-  },
+const userLogInSchema = new mongoose.Schema(
+  {
+    userId: {
+      type: mongoose.Types.ObjectId,
+      required: true,
+    },
 
-  userName: {
-    type: String,
-  },
+    userName: {
+      type: String,
+    },
 
-  browser: {
-    type: String,
-  },
+    browser: {
+      type: String,
+    },
 
-  host: {
-    type: String,
-  },
+    host: {
+      type: String,
+    },
 
-  ipAddress: {
-    type: String,
-  },
+    ipAddress: {
+      type: String,
+    },
 
-  logInStatus: {
-    type: Boolean,
-    default: false,
-  },
+    logInStatus: {
+      type: Boolean,
+      default: false,
+    },
 
-  timeStamp: {
-    type: String,
+    timeStamp: {
+      type: Date,
+      default: new Date(),
+    },
   },
-});
+  { timestamps: true }
+);
 
 module.exports = mongoose.model("UserLog", userLogInSchema);

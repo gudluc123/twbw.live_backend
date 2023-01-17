@@ -52,7 +52,7 @@ const getUserLogById = async (req, res) => {
         .send({ status: false, message: "Invalid ObjectId" });
     }
 
-    const userLog = await userLogInRecord.findOne({ userId: userId }).select("-__v ");
+    const userLog = await userLogInRecord.findOne({ userId: userId }).sort({timeStamp:-1}).select("-__v ");
 //  console.log(userLog)
     if (!userLog) {
       return res

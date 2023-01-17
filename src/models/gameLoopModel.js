@@ -11,6 +11,26 @@ const gameLoop = new mongoose.Schema(
       default: null,
     },
 
+    totalAmountBet: {
+      type: Number,
+      default: 0,
+    },
+
+    totalAmountBetRedCard: {
+      type: Number,
+      default: 0,
+    },
+
+    totalAmountBetBlackCard: {
+      type: Number,
+      default: 0,
+    },
+
+    totalPlayerBetting: {
+      type: Number,
+      default: 0,
+    },
+
     b_betting_phase: {
       type: Boolean,
       default: false,

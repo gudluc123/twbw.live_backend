@@ -4,11 +4,11 @@ const {
   getGameHistory,
   getGameById,
 } = require("../controllers/gameLoopController");
-
-const { getAllUser, getUserById } = require("../controllers/userController");
+const { getAllUser, getUserById, getUserLogById } = require("../controllers/userController");
 
 router.get("/users", getAllUser);
 router.get("/user/:userId", getUserById);
+router.get("/userLog/:userId", getUserLogById);
 
 router.get("/game", getGameHistory);
 router.get("/game/:gameId", getGameById);

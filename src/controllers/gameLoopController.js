@@ -2,7 +2,11 @@ const gameLoopModel = require("../models/gameLoopModel");
 
 const getGameHistory = async (req, res) => {
   try {
-    const gameHistory = await gameLoopModel.find().select("-__v -password");
+    const gameHistory = await gameLoopModel
+      .find()
+      .sort({ roundId: -1 })
+      .limit(250)
+      .select("-__v ");
 
     return res
       .status(200)

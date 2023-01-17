@@ -23,7 +23,7 @@ const Stopwatch = require("statman-stopwatch");
 const sw = new Stopwatch(true);
 var id;
 
-var GAME_LOOP_ID = GAME_LOOP_ID ? GAME_LOOP_ID : "63bfe3db034c364c7036bedb";
+var GAME_LOOP_ID = GAME_LOOP_ID ? GAME_LOOP_ID : "63bfeaac7333cecf1030a29c";
 
 let PASSPORT_SECRET = "Siamaq@9";
 let MONGOOSE_DB_LINK =
@@ -226,6 +226,9 @@ app.get("/retrieve", async (req, res) => {
     return res.status(500).send({ status: false, message: error.message });
   }
 });
+var totalAmount = 0;
+var totalAmountRedCard = 0;
+var totalAmountBlackCard = 0;
 
 // Creating Bet
 app.post("/send_bet", checkAuthenticated, async (req, res) => {
@@ -293,6 +296,13 @@ app.post("/send_bet", checkAuthenticated, async (req, res) => {
 
     io.emit("receive_live_betting_table", JSON.stringify(live_bettors_table));
     res.json(`Bet placed for ${req.user.username}`);
+    totalAmount = totalAmount + Number(req.body.bet_amount);
+
+    if (req.body.payout_multiplier === "Red") {
+      totalAmountRedCard += Number(req.body.bet_amount);
+    } else {
+      totalAmountBlackCard += Number(req.body.bet_amount);
+    }
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
   }
@@ -625,6 +635,10 @@ const loopUpdate = async () => {
       let updaetData = {
         gameCrash: resultCard,
         active_player_id_list: live_bettors_table,
+        totalPlayerBetting: live_bettors_table.length,
+        totalAmountBet: totalAmount,
+        totalAmountBetRedCard: totalAmountRedCard,
+        totalAmountBetBlackCard: totalAmountBlackCard,
       };
       const updateGameLoop = await gameLoopModel.findOneAndUpdate(
         { _id: GAME_LOOP_ID },
@@ -680,6 +694,9 @@ const loopUpdate = async () => {
       io.emit("start_betting_phase");
       io.emit("testingvariable");
       live_bettors_table = [];
+      totalAmount = 0;
+      totalAmountRedCard = 0;
+      totalAmountBlackCard = 0;
       phase_start_time = Date.now();
       game();
     }

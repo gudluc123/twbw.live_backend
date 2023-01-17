@@ -44,7 +44,7 @@ export default function ChatMessage() {
   useEffect(() => {
     getUser();
     // let getChatHistoryTimer = //setTimeout(() =>
-     get_chat_history()
+    get_chat_history();
     // //  , 1000);
 
     // return () => {

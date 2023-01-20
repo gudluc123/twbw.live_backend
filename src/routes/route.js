@@ -8,6 +8,6 @@ const {
 
 router.get("/users", getAllUser);
 router.get("/user/:userId", getUserById);
-router.get("/gameLog/:userId", getUserGameLogByUserId);
+router.get("/userGameLog/:userId", getUserGameLogByUserId);
 
 module.exports = router;

@@ -1,6 +1,6 @@
 const { isValidObjectId } = require("mongoose");
 const userModel = require("../models/user");
-const userLogInRecord = require("../models/userLogInRecord");
+const userGameLog = require("../models/userGameLog");
 
 const getAllUser = async (req, res) => {
   try {
@@ -41,4 +41,33 @@ const getUserById = async (req, res) => {
   }
 };
 
-module.exports = { getAllUser, getUserById };
+const getUserGameLogByUserId = async (req, res) => {
+  try {
+    let userId = req.params.userId;
+    userId = userId.trim();
+
+    if (!isValidObjectId(userId)) {
+      return res
+        .status(400)
+        .send({ status: false, message: "Invalid ObjectId" });
+    }
+
+    const userGamePlayed = await userGameLog
+      .find({ userId: userId })
+      .select("-__v");
+
+    if (!userGamePlayed.length) {
+      return res
+        .status(404)
+        .send({ status: false, message: "User not Bet for this round" });
+    }
+
+    return res
+      .status(200)
+      .send({ status: "true", message: "Success", data: userGamePlayed });
+  } catch (error) {
+    return res.status(500).send({ status: false, message: error.message });
+  }
+};
+
+module.exports = { getAllUser, getUserById, getUserGameLogByUserId };

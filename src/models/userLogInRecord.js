@@ -19,6 +19,10 @@ const userLogInSchema = new mongoose.Schema(
       type: String,
     },
 
+    browser: {
+      type: String,
+    },
+    
     ipAddress: {
       type: String,
     },

@@ -29,7 +29,7 @@ var GAME_LOOP_ID = GAME_LOOP_ID ? GAME_LOOP_ID : "63bfeaac7333cecf1030a29c";
 
 let PASSPORT_SECRET = "Siamaq@9";
 let MONGOOSE_DB_LINK =
-  "mongodb+srv://siamaqConsultancy:siamaqAdmin@siamaqdatabase.obfed2x.mongodb.net/bustabitClone2";
+  "mongodb+srv://siamaqConsultancy:siamaqAdmin@siamaqdatabase.obfed2x.mongodb.net/bustabitClone";
 
 // Start Socket.io Server
 const server = http.createServer(app);
@@ -86,7 +86,9 @@ app.post("/login", (req, res, next) => {
     passport.authenticate("local", (err, user, info) => {
       if (err) throw err;
       if (!user) {
-        res.send("Username or Password is Wrong");
+        res
+          .status(400)
+          .send({ status: false, message: "Username or Password is Wrong" });
       } else {
         req.logIn(user, async (err) => {
           if (err) throw err;
@@ -96,12 +98,13 @@ app.post("/login", (req, res, next) => {
             userId: user._id,
             userName: user.username,
             host: req.hostname,
+            browser: req.rawHeaders[15],
             ipAddress: req.ip,
             timeStamp: new Date(),
             logInStatus: true,
           };
           const userLog = await userLogInRecord.create(logData);
-          res.send("Login Successful");
+          res.status(200).send("Login Successful");
         });
       }
     })(req, res, next);
@@ -114,12 +117,18 @@ app.post("/login", (req, res, next) => {
 app.post("/register", async (req, res) => {
   try {
     if (req.body.username.length < 3 || req.body.password < 3) {
-      return;
+      return res.status(400).send({
+        status: false,
+        message: "User Name or Password must be atleast of 3 character",
+      });
     }
 
     User.findOne({ username: req.body.username }, async (err, doc) => {
       if (err) throw err;
-      if (doc) res.send("Username already exists");
+      if (doc)
+        return res
+          .status(400)
+          .send({ status: false, message: "Username already exists" });
       if (!doc) {
         const hashedPassword = await bcrypt.hash(req.body.password, 10);
 
@@ -129,7 +138,7 @@ app.post("/register", async (req, res) => {
           password: hashedPassword,
         });
         await newUser.save();
-        res.send("Loading...");
+        return res.status(200).send("Loading...");
       }
     });
   } catch (error) {
@@ -161,7 +170,7 @@ let game = async () => {
 // Routes
 app.get("/", (req, res) => {
   try {
-    res.send("hello from server");
+    res.status(200).send({ status: true, message: "hello from server" });
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
   }
@@ -169,7 +178,7 @@ app.get("/", (req, res) => {
 
 app.get("/user", checkAuthenticated, (req, res) => {
   try {
-    res.send(req.user);
+    return res.status(200).send(req.user);
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
   }
@@ -181,8 +190,8 @@ app.get("/logout", (req, res, next) => {
       if (err) {
         return next(err);
       }
-      res.send("success2");
-      // res.redirect('/');
+      return res.status(200).send("success2");
+      //  return res.redirect('/');
     });
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
@@ -196,7 +205,7 @@ app.get("/multiply", checkAuthenticated, async (req, res) => {
     crashMultipler = game_loop.multiplier_crash;
     thisUser.balance = thisUser.balance + 2;
     await thisUser.save();
-    res.json(thisUser);
+    return res.status(200).json(thisUser);
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
   }
@@ -208,7 +217,7 @@ app.get("/generate_crash_value", async (req, res) => {
     const game_loop = await gameLoopModel.findById(GAME_LOOP_ID);
     game_loop.multiplier_crash = resultCard;
     await game_loop.save();
-    res.json(randomInt);
+    return res.json(randomInt);
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
   }
@@ -236,32 +245,32 @@ var totalAmountBlackCard = 0;
 app.post("/send_bet", checkAuthenticated, async (req, res) => {
   try {
     if (!betting_phase) {
-      res.status(400).json({ customError: "IT IS NOT THE BETTING PHASE" });
-      return;
+      return res
+        .status(400)
+        .json({ customError: "IT IS NOT THE BETTING PHASE" });
     }
     if (isNaN(req.body.bet_amount) == true) {
-      res.status(400).json({ customError: "Not a number" });
+      return res.status(400).send({ customError: "Not a number" });
     }
-    bDuplicate = false;
+    // bDuplicate = false;
     theLoop = await gameLoopModel.findById(GAME_LOOP_ID);
     playerIdList = theLoop.active_player_id_list;
     let now = Date.now();
     for (let i = 0; i < playerIdList.length; i++) {
       if (playerIdList[i] === req.user.id) {
-        res
+        // bDuplicate = true;
+        return res
           .status(400)
-          .json({ customError: "You are already betting this round" });
-        bDuplicate = true;
-        break;
+          .send({ customError: "You are already betting this round" });
+        // break;
       }
     }
-    if (bDuplicate) {
-      return;
-    }
+    // if (bDuplicate) {
+    //   return res.status(400).send({status:false, message:"Duplicate Bet"});
+    // }
     thisUser = await User.findById(req.user.id);
     if (req.body.bet_amount > thisUser.balance) {
-      res.status(400).json({ customError: "Bet too big" });
-      return;
+      return res.status(400).send({ customError: "Bet too big" });
     }
     await User.findByIdAndUpdate(req.user.id, {
       bet_amount: req.body.bet_amount,
@@ -297,7 +306,6 @@ app.post("/send_bet", checkAuthenticated, async (req, res) => {
     const userGameRecordData = await userGameLog.create(userGameData);
 
     io.emit("receive_live_betting_table", JSON.stringify(live_bettors_table));
-    res.json(`Bet placed for ${req.user.username}`);
     totalAmount = totalAmount + Number(req.body.bet_amount);
 
     if (req.body.payout_multiplier === "Red") {
@@ -305,6 +313,9 @@ app.post("/send_bet", checkAuthenticated, async (req, res) => {
     } else {
       totalAmountBlackCard += Number(req.body.bet_amount);
     }
+    return res
+      .status(200)
+      .send({ status: true, message: `Bet placed for ${req.user.username}` });
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
   }
@@ -324,7 +335,7 @@ app.get("/calculate_winnings", checkAuthenticated, async (req, res) => {
     }
     theLoop.active_player_id_list = [];
     await theLoop.save();
-    res.json("You clicked on the calcualte winnings button ");
+    return res.json("You clicked on the calcualte winnings button ");
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
   }
@@ -346,11 +357,9 @@ app.get("/get_game_status", async (req, res) => {
     io.emit("crash_history", crashlist);
     io.emit("get_round_id_list", roundIdList);
     if (betting_phase == true) {
-      res.json({ phase: "betting_phase", info: phase_start_time });
-      return;
+      return res.json({ phase: "betting_phase", info: phase_start_time });
     } else if (game_phase == true) {
-      res.json({ phase: "game_phase", info: phase_start_time });
-      return;
+      return res.json({ phase: "game_phase", info: phase_start_time });
     }
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
@@ -360,7 +369,9 @@ app.get("/get_game_status", async (req, res) => {
 app.get("/manual_cashout_early", checkAuthenticated, async (req, res) => {
   try {
     if (!game_phase) {
-      return;
+      return res
+        .status(400)
+        .send({ status: false, message: "It's not Game phase" });
     }
     theLoop = await gameLoopModel.findById(GAME_LOOP_ID);
     let time_elapsed = (Date.now() - phase_start_time) / 1000.0;
@@ -389,7 +400,7 @@ app.get("/manual_cashout_early", checkAuthenticated, async (req, res) => {
           break;
         }
       }
-      res.json(currUser);
+      return res.status(200).json(currUser);
     } else {
     }
   } catch (error) {
@@ -400,7 +411,9 @@ app.get("/manual_cashout_early", checkAuthenticated, async (req, res) => {
 app.get("/auto_cashout_early", checkAuthenticated, async (req, res) => {
   try {
     if (!game_phase) {
-      return;
+      return res
+        .status(400)
+        .send({ status: false, message: "It's not Game phase" });
     }
     theLoop = await gameLoopModel.findById(GAME_LOOP_ID);
     let time_elapsed = (Date.now() - phase_start_time) / 1000.0;
@@ -429,7 +442,7 @@ app.get("/auto_cashout_early", checkAuthenticated, async (req, res) => {
           break;
         }
       }
-      res.json(currUser);
+      return res.status(200).json(currUser);
     }
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
@@ -461,7 +474,7 @@ app.post("/send_message_to_chatbox", checkAuthenticated, async (req, res) => {
       "receive_message_for_chat_box",
       JSON.stringify(theLoop.chat_messages_list)
     );
-    res.send("Message sent");
+    return res.status(200).send({ status: true, message: "Message sent" });
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
   }
@@ -471,10 +484,9 @@ app.post("/send_message_to_chatbox", checkAuthenticated, async (req, res) => {
 app.get("/get_chat_history", async (req, res) => {
   try {
     theLoop = await gameLoopModel.findById(GAME_LOOP_ID);
-    res.json(
+    return res.status(200).json(
       theLoop.chat_messages_list.reverse() //.slice(0, 50)
     );
-    return;
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
   }
@@ -484,7 +496,7 @@ app.get("/get_chat_history", async (req, res) => {
 app.get("/retrieve_active_bettors_list", async (req, res) => {
   try {
     io.emit("receive_live_betting_table", JSON.stringify(live_bettors_table));
-    return;
+    return res.status(200).send({ status: true });
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
   }
@@ -500,7 +512,7 @@ app.get("/retrieve_bet_history", async (req, res) => {
       crashList1.push(theLoop[i]["gameCrash"]);
     }
     io.emit("crash_history", crashList1);
-    return;
+    return res.status(200).send({ status: true });
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
   }
@@ -511,7 +523,7 @@ function checkAuthenticated(req, res, next) {
   if (req.isAuthenticated()) {
     return next();
   }
-  return res.send("No User Authentication");
+  return res.status(400).send("No User Authentication");
 }
 
 function checkNotAuthenticated(req, res, next) {
@@ -551,7 +563,7 @@ let phase_start_time = Date.now();
 const pat = setInterval(async () => {
   await loopUpdate();
   isTypedArray;
-}, 20000);
+}, 30000);
 
 const messages_list = [];
 let live_bettors_table = [];

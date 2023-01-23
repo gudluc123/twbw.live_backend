@@ -53,7 +53,7 @@ const getUserGameLogByUserId = async (req, res) => {
     }
 
     const userGamePlayed = await userGameLog
-      .find({ userId: userId })
+      .find( { userId })
       .select("-__v");
 
     if (!userGamePlayed.length) {

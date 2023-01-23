@@ -46,6 +46,7 @@ function CardGame() {
   const [selectedCard, setSelectedCard] = useState("");
   const [resultCard, setResultCard] = useState("");
 
+  // console.log(process.env.REACT_APP_BASEURL)
   // Socket.io setup
   useEffect(() => {
     retrieve();
@@ -154,12 +155,12 @@ function CardGame() {
   }, []);
 
   // Routes
-  const API_BASE = "http://139.59.65.179:4000";
+  const API_BASE = process.env.REACT_APP_BASEURL;
   const register = async () => {
     try {
       const res = await Axios({
         method: "post",
-        url: "http://139.59.65.179:4000/register",
+        url: API_BASE + "/register",
         data: {
           username: registerUsername,
           userEmail: registerEmail,
@@ -181,7 +182,7 @@ function CardGame() {
             password: registerPassword,
           },
           withCredentials: true,
-          url: "http://139.59.65.179:4000/login",
+          url: API_BASE + "/login",
         });
         // console.log(res1);
         if (res1) {
@@ -208,7 +209,7 @@ function CardGame() {
           password: loginPassword,
         },
         withCredentials: true,
-        url: "http://139.59.65.179:4000/login",
+        url: API_BASE + "/login",
       });
       // console.log(res);
       if (res) {

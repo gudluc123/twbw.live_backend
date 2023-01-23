@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
 import { socket } from "../../socket-io-connection/socket";
@@ -8,7 +9,7 @@ export default function ChatMessage() {
   const [chatHistory, setChatHistory] = useState();
   const [errorMessage, setErrorMessage] = useState("");
   const [messageToTextBox, setMessageToTextBox] = useState("");
-  const API_BASE = "http://139.59.65.179:4000";
+  const API_BASE = process.env.REACT_APP_BASEURL;
 
   // Socket.io setup
   useEffect(() => {

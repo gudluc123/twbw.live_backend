@@ -155,7 +155,7 @@ function CardGame() {
   }, []);
 
   // Routes
-  const API_BASE = process.env.REACT_APP_BASEURL;
+  const API_BASE = "http://139.59.65.179:4000";
   const register = async () => {
     try {
       const res = await Axios({

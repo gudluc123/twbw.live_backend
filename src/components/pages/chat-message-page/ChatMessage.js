@@ -9,7 +9,7 @@ export default function ChatMessage() {
   const [chatHistory, setChatHistory] = useState();
   const [errorMessage, setErrorMessage] = useState("");
   const [messageToTextBox, setMessageToTextBox] = useState("");
-  const API_BASE = process.env.REACT_APP_BASEURL;
+  const API_BASE = "http://139.59.65.179:4000";
 
   // Socket.io setup
   useEffect(() => {

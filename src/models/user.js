@@ -2,6 +2,11 @@ const mongoose = require("mongoose");
 
 const user = new mongoose.Schema(
   {
+    sponserId: {
+      type: String,
+      required: true,
+    },
+
     username: {
       type: String,
       required: true,
@@ -26,11 +31,19 @@ const user = new mongoose.Schema(
     },
     payout_multiplier: {
       type: String,
-      default: 0,
+      // default: 0,
     },
+
     cardSelected: {
       type: String,
     },
+
+    role: {
+      type: String,
+      enum: ["Broker", "SubBroker", "Agent", "User"],
+      default: "User",
+    },
+
     isActive: {
       type: Boolean,
       default: true,

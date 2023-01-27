@@ -19,6 +19,7 @@ const userGameLog = require("./src/models/userGameLog");
 const route = require("./src/routes/route");
 const gameLoopRoute = require("./src/routes/gameLoopRoute");
 const userLogInRoute = require("./src/routes/userLogInRoute");
+const adminRoute = require("./src/routes/adminRoute");
 const gameLoopModel = require("./src/models/gameLoopModel");
 const Game_loop = require("./src/models/game_loop");
 const Stopwatch = require("statman-stopwatch");
@@ -29,7 +30,7 @@ var GAME_LOOP_ID = GAME_LOOP_ID ? GAME_LOOP_ID : "63bfeaac7333cecf1030a29c";
 
 let PASSPORT_SECRET = "Siamaq@9";
 let MONGOOSE_DB_LINK =
-  "mongodb+srv://siamaqConsultancy:siamaqAdmin@siamaqdatabase.obfed2x.mongodb.net/bustabitClone";
+  "mongodb+srv://siamaqConsultancy:siamaqAdmin@siamaqdatabase.obfed2x.mongodb.net/bustabitClone2";
 
 // Start Socket.io Server
 const server = http.createServer(app);
@@ -81,7 +82,7 @@ app.use(passport.session());
 require("./passportConfig")(passport);
 
 // Passport.js login/register system
-app.post("/login", (req, res, next) => {
+app.post("/api/login", (req, res, next) => {
   try {
     passport.authenticate("local", (err, user, info) => {
       if (err) throw err;
@@ -114,33 +115,60 @@ app.post("/login", (req, res, next) => {
 });
 
 // Passport.js login/register system
-app.post("/register", async (req, res) => {
+app.post("/api/register", async (req, res) => {
   try {
-    if (req.body.username.length < 3 || req.body.password < 3) {
-      return res.status(400).send({
-        status: false,
-        message: "User Name or Password must be atleast of 3 character",
-      });
+    const requestBody = req.body;
+
+    const { sponserId, username, userEmail, password } = requestBody;
+
+    if (username.length < 3 || password < 3) {
+      return;
     }
 
-    User.findOne({ username: req.body.username }, async (err, doc) => {
-      if (err) throw err;
-      if (doc)
-        return res
-          .status(400)
-          .send({ status: false, message: "Username already exists" });
-      if (!doc) {
-        const hashedPassword = await bcrypt.hash(req.body.password, 10);
+    const sponser = await User.findOne({ _id: req.body.sponserId });
+    if (!sponser) {
+      return res
+        .status(404)
+        .send({ status: false, message: "Sponser doesn't exists" });
+    }
 
-        const newUser = new User({
-          username: req.body.username,
-          userEmail: req.body.userEmail,
-          password: hashedPassword,
-        });
-        await newUser.save();
-        return res.status(200).send("Loading...");
-      }
+    let user = await User.findOne({ username: username });
+    if (user) {
+      return res.send("Username already exists");
+    }
+
+    const hashedPassword = await bcrypt.hash(req.body.password, 10);
+
+    const newUser = new User({
+      username: username,
+      userEmail: userEmail,
+      password: hashedPassword,
+      sponserId: sponserId,
     });
+
+    await newUser.save();
+    res.send("Loading...");
+
+    // User.findOne({ username: req.body.username }, async (err, doc) => {
+    //   if (err) throw err;
+    //   if (doc) res.send("Username already exists");
+    //   if (!doc) {
+    //     const sponser = await User.findOne({ _id: req.body.sponserId });
+    //     if (!sponser) {
+    //       return res
+    //         .status(404)
+    //         .send({ status: false, message: "Sponser doesn't exists" });
+    //     }
+    //     const hashedPassword = await bcrypt.hash(req.body.password, 10);
+    //     const newUser = new User({
+    //       username: req.body.username,
+    //       userEmail: req.body.userEmail,
+    //       password: hashedPassword,
+    //     });
+    //     await newUser.save();
+    //     res.send("Loading...");
+    //   }
+    // });
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
   }
@@ -168,7 +196,7 @@ let game = async () => {
 };
 
 // Routes
-app.get("/", (req, res) => {
+app.get("/api", (req, res) => {
   try {
     res.status(200).send({ status: true, message: "hello from server" });
   } catch (error) {
@@ -176,7 +204,7 @@ app.get("/", (req, res) => {
   }
 });
 
-app.get("/user", checkAuthenticated, (req, res) => {
+app.get("/api/user", checkAuthenticated, (req, res) => {
   try {
     return res.status(200).send(req.user);
   } catch (error) {
@@ -184,7 +212,7 @@ app.get("/user", checkAuthenticated, (req, res) => {
   }
 });
 
-app.get("/logout", (req, res, next) => {
+app.get("/api/logout", (req, res, next) => {
   try {
     req.logout(function (err) {
       if (err) {
@@ -198,7 +226,7 @@ app.get("/logout", (req, res, next) => {
   }
 });
 
-app.get("/multiply", checkAuthenticated, async (req, res) => {
+app.get("/api/multiply", checkAuthenticated, async (req, res) => {
   try {
     const thisUser = await User.findById(req.user._id);
     const game_loop = await gameLoopModel.findById(GAME_LOOP_ID);
@@ -211,7 +239,7 @@ app.get("/multiply", checkAuthenticated, async (req, res) => {
   }
 });
 
-app.get("/generate_crash_value", async (req, res) => {
+app.get("/api/generate_crash_value", async (req, res) => {
   try {
     const randomInt = Math.floor(Math.random() * 6) + 1;
     const game_loop = await gameLoopModel.findById(GAME_LOOP_ID);
@@ -223,7 +251,7 @@ app.get("/generate_crash_value", async (req, res) => {
   }
 });
 
-app.get("/retrieve", async (req, res) => {
+app.get("/api/retrieve", async (req, res) => {
   try {
     const game_loop = await gameLoopModel.findById(GAME_LOOP_ID);
     crashMultipler = game_loop.gameCrash;
@@ -242,7 +270,7 @@ var totalAmountRedCard = 0;
 var totalAmountBlackCard = 0;
 
 // Creating Bet
-app.post("/send_bet", checkAuthenticated, async (req, res) => {
+app.post("/api/send_bet", checkAuthenticated, async (req, res) => {
   try {
     if (!betting_phase) {
       return res
@@ -321,7 +349,7 @@ app.post("/send_bet", checkAuthenticated, async (req, res) => {
   }
 });
 
-app.get("/calculate_winnings", checkAuthenticated, async (req, res) => {
+app.get("/api/calculate_winnings", checkAuthenticated, async (req, res) => {
   try {
     let theLoop = await gameLoopModel.findById(GAME_LOOP_ID);
     playerIdList = theLoop.active_player_id_list.map((e) => e.the_user_id);
@@ -342,7 +370,7 @@ app.get("/calculate_winnings", checkAuthenticated, async (req, res) => {
 });
 
 // Game Status
-app.get("/get_game_status", async (req, res) => {
+app.get("/api/get_game_status", async (req, res) => {
   try {
     let theLoop = await gameLoopModel.find().sort({ roundId: -1 }).limit(50);
     // console.log(theLoop);
@@ -366,7 +394,7 @@ app.get("/get_game_status", async (req, res) => {
   }
 });
 
-app.get("/manual_cashout_early", checkAuthenticated, async (req, res) => {
+app.get("/api/manual_cashout_early", checkAuthenticated, async (req, res) => {
   try {
     if (!game_phase) {
       return res
@@ -408,7 +436,7 @@ app.get("/manual_cashout_early", checkAuthenticated, async (req, res) => {
   }
 });
 
-app.get("/auto_cashout_early", checkAuthenticated, async (req, res) => {
+app.get("/api/auto_cashout_early", checkAuthenticated, async (req, res) => {
   try {
     if (!game_phase) {
       return res
@@ -450,7 +478,7 @@ app.get("/auto_cashout_early", checkAuthenticated, async (req, res) => {
 });
 
 // Send Message
-app.post("/send_message_to_chatbox", checkAuthenticated, async (req, res) => {
+app.post("/api/send_message_to_chatbox", checkAuthenticated, async (req, res) => {
   try {
     user_message = req.body.message_to_textbox;
     message_json = {
@@ -481,7 +509,7 @@ app.post("/send_message_to_chatbox", checkAuthenticated, async (req, res) => {
 });
 
 // Chat History
-app.get("/get_chat_history", async (req, res) => {
+app.get("/api/get_chat_history", async (req, res) => {
   try {
     theLoop = await gameLoopModel.findById(GAME_LOOP_ID);
     return res.status(200).json(
@@ -493,7 +521,7 @@ app.get("/get_chat_history", async (req, res) => {
 });
 
 // Active Player
-app.get("/retrieve_active_bettors_list", async (req, res) => {
+app.get("/api/retrieve_active_bettors_list", async (req, res) => {
   try {
     io.emit("receive_live_betting_table", JSON.stringify(live_bettors_table));
     return res.status(200).send({ status: true });
@@ -503,7 +531,7 @@ app.get("/retrieve_active_bettors_list", async (req, res) => {
 });
 
 // Bet History
-app.get("/retrieve_bet_history", async (req, res) => {
+app.get("/api/retrieve_bet_history", async (req, res) => {
   try {
     let theLoop = await gameLoopModel.find().sort({ roundId: -1 }).limit(50);
     let crashList1 = [];
@@ -533,9 +561,10 @@ function checkNotAuthenticated(req, res, next) {
   next();
 }
 
-app.use("/", route);
-app.use("/", gameLoopRoute);
-app.use("/", userLogInRoute);
+app.use("/api", route);
+app.use("/api/game", gameLoopRoute);
+app.use("/api/userlog", userLogInRoute);
+app.use("/api/admin", adminRoute);
 
 // Listen Server
 server.listen(4000, () => {

@@ -12,4 +12,4 @@ const isValidRequestBody = (requestBody) => {
   return false;
 };
 
-module.exports = { isValid, isValidRequestBody, isValidObjectId };
+module.exports = { isValid, isValidRequestBody };

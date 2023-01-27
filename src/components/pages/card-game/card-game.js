@@ -16,6 +16,7 @@ import LiveBettinTable from "../live-betting-table/LiveBettinTable";
 
 function CardGame() {
   const [registerUsername, setRegisterUsername] = useState("");
+  const [sponserId, setSponserId] = useState("");
   const [registerEmail, setRegisterEmail] = useState("");
   const [registerPassword, setRegisterPassword] = useState("");
   const [loginUsername, setLoginUsername] = useState("");
@@ -155,13 +156,14 @@ function CardGame() {
   }, []);
 
   // Routes
-  const API_BASE = "http://139.59.65.179:4000";
+  const API_BASE = "https://playnwin.fun";
   const register = async () => {
     try {
       const res = await Axios({
         method: "post",
         url: API_BASE + "/register",
         data: {
+          sponserId:sponserId,
           username: registerUsername,
           userEmail: registerEmail,
           password: registerPassword,
@@ -538,6 +540,13 @@ function CardGame() {
                 ""
               )}
               <h1>Register</h1>
+            </div>
+            <div className="form-group">
+              <label>SponserId: </label>
+              <input
+                placeholder="Enter your Sponser ID"
+                onChange={(e) => setSponserId(e.target.value)}
+              />
             </div>
             <div className="form-group">
               <label>Username: </label>

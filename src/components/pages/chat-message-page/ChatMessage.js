@@ -9,7 +9,7 @@ export default function ChatMessage() {
   const [chatHistory, setChatHistory] = useState();
   const [errorMessage, setErrorMessage] = useState("");
   const [messageToTextBox, setMessageToTextBox] = useState("");
-  const API_BASE = "http://139.59.65.179:4000";
+  const API_BASE = "https://playnwin.fun";
 
   // Socket.io setup
   useEffect(() => {

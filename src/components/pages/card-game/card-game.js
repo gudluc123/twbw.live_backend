@@ -156,14 +156,14 @@ function CardGame() {
   }, []);
 
   // Routes
-  const API_BASE = "https://playnwin.fun";
+  const API_BASE = "https://playnwin.fun/api";
   const register = async () => {
     try {
       const res = await Axios({
         method: "post",
         url: API_BASE + "/register",
         data: {
-          sponserId:sponserId,
+          sponserId: sponserId,
           username: registerUsername,
           userEmail: registerEmail,
           password: registerPassword,

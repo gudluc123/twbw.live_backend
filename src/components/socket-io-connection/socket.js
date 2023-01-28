@@ -1,6 +1,6 @@
 import io from "socket.io-client";
 
-export const socket = io.connect("http://139.59.65.179:4000");
+export const socket = io.connect("https://playnwin.fun/api");
 
 // console.log('check 1', socket.connected);
 // console.log(process.env.REACT_APP_BASEURL)

@@ -1,7 +1,7 @@
 import io from "socket.io-client";
 
 export const socket = io.connect("https://playnwin.fun", {
-  path: "/api",
+  path: "/api/",
   cors: "*",
   // transports: ["websocket"],
 });

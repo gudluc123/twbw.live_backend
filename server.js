@@ -35,6 +35,7 @@ let MONGOOSE_DB_LINK =
 // Start Socket.io Server
 const server = http.createServer(app);
 const io = new Server(server, {
+  pingTimeout: 60000,
   cors: {
     origin: "*",
     methods: ["GET", "POST"],

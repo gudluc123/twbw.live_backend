@@ -156,7 +156,7 @@ function CardGame() {
   }, []);
 
   // Routes
-  const API_BASE = "https://playnwin.fun/api";
+  const API_BASE = "https://twbw.live/api";
   const register = async () => {
     try {
       const res = await Axios({

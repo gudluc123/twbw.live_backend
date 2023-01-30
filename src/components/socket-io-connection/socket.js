@@ -1,8 +1,8 @@
 import io from "socket.io-client";
 
-export const socket = io.connect("https://playnwin.fun:4000", {
+export const socket = io.connect("https://playnwin.fun/api", {
   cors: "*",
-  transports: ["websocket"],
+  // transports: ["websocket"],
 });
 
 // console.log('check 1', socket.connected);

@@ -563,7 +563,7 @@ function checkNotAuthenticated(req, res, next) {
 }
 
 app.use("/api", route);
-app.use("/api/game", gameLoopRoute);
+app.use("/api/loop", gameLoopRoute);
 app.use("/api/userlog", userLogInRoute);
 app.use("/api/admin", adminRoute);
 

@@ -3,13 +3,14 @@
 import React, { useState, useEffect } from "react";
 import { socket } from "../../socket-io-connection/socket";
 import Axios from "axios";
+import moment from 'moment'
 
 export default function ChatMessage() {
   const [userData, setUserData] = useState(null);
   const [chatHistory, setChatHistory] = useState();
   const [errorMessage, setErrorMessage] = useState("");
   const [messageToTextBox, setMessageToTextBox] = useState("");
-  const API_BASE = "https://twbw.live/api";
+  const API_BASE = "http://localhost:4000/api";
 
   // Socket.io setup
   useEffect(() => {
@@ -104,8 +105,9 @@ export default function ChatMessage() {
                   <div className="individual-chat-message" key={index}>
                     <span className="message_top">{message.the_username}</span>
                     <span className="message_top_time">
-                      {message.the_time} -&nbsp;
-                      {message.the_date}
+                      {/* {message.the_time} -&nbsp;
+                      {message.the_date} */}
+                      {moment(message.time).format("YYYY-MM-DD, HH:mm")}
                     </span>
                     <br />
                     <span className="message_bottom">

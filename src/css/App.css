@@ -161,6 +161,7 @@ ul {
   padding: 20px;
   min-width: 0px;
   min-height: 0px;
+  border-radius: 10px;
 }
 
 .grid-elements-amount-block {
@@ -314,6 +315,7 @@ ul {
   overflow-x: hidden;
   height: 92%;
   width: 100%;
+  font-size: 13px;
 }
 
 .chat-box-rectangle {}
@@ -371,6 +373,7 @@ h2 small {
   font-size: 14px;
   text-transform: uppercase;
   letter-spacing: 0.03em;
+  font-size: small;
 }
 
 .history-table .table-row-blue {
@@ -385,12 +388,14 @@ h2 small {
 
 .history-table .table-row-red {
   background-color: #fff;
-  border: 2px solid #ce4975;
+  border: 2px solid #0f0e0e;
   color: #ce4975;
   font-size: 16px;
   font-weight: 600;
   font-family: 'Open Sans', sans-serif;
   background-color: #393e40;
+  font-size: 14px;
+
 }
 
 .row-history-wrapper {
@@ -426,6 +431,7 @@ h2 small {
   font-size: 14px;
   text-transform: uppercase;
   letter-spacing: 0.03em;
+  font-size: small;
 }
 
 .active-bet-table .table-row-blue {
@@ -573,7 +579,7 @@ h2 small {
   .grid-elements {
     width: 100%;
     min-height: 350px;
-    gap: 10px
+    gap: 10px;
   }
 
   .grid-elements:nth-of-type(5) {

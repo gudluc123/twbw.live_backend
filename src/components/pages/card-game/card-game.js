@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Modal from "../../modal/Modal";
 import { ToastContainer, toast } from "react-toastify";
+import { useMediaQuery } from 'react-responsive'
 import { Slide } from "react-toastify";
 import Axios from "axios";
 import "react-toastify/dist/ReactToastify.css";
@@ -84,6 +85,15 @@ function CardGame() {
     //   socket.disconnect();
     // };
   }, []);
+  
+    const isDesktopOrLaptop = useMediaQuery({
+      query: '(min-width: 1224px)'
+    })
+    const isBigScreen = useMediaQuery({ query: '(min-width: 1824px)' })
+    const isTabletOrMobile = useMediaQuery({ query: '(max-width: 1224px)' })
+    const isPortrait = useMediaQuery({ query: '(orientation: portrait)' })
+    const isRetina = useMediaQuery({ query: '(min-resolution: 2dppx)' })
+  
 
   // Define useEffects
   useEffect(() => {
@@ -156,7 +166,7 @@ function CardGame() {
   }, []);
 
   // Routes
-  const API_BASE = "https://twbw.live/api";
+  const API_BASE = "http://localhost:4000/api";
   const register = async () => {
     try {
       const res = await Axios({

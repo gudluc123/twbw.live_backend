@@ -30,7 +30,7 @@ var GAME_LOOP_ID = GAME_LOOP_ID ? GAME_LOOP_ID : "63bfeaac7333cecf1030a29c";
 
 let PASSPORT_SECRET = "Siamaq@9";
 let MONGOOSE_DB_LINK =
-  "mongodb+srv://siamaqConsultancy:siamaqAdmin@siamaqdatabase.obfed2x.mongodb.net/bustabitClone";
+  "mongodb+srv://siamaqConsultancy:siamaqAdmin@siamaqdatabase.obfed2x.mongodb.net/bustabitClone2";
 
 // Start Socket.io Server
 const server = http.createServer(app);

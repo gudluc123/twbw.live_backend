@@ -30,7 +30,7 @@ var GAME_LOOP_ID = GAME_LOOP_ID ? GAME_LOOP_ID : "63bfeaac7333cecf1030a29c";
 
 let PASSPORT_SECRET = "Siamaq@9";
 let MONGOOSE_DB_LINK =
-  "mongodb+srv://siamaqConsultancy:siamaqAdmin@siamaqdatabase.obfed2x.mongodb.net/bustabitClone2";
+  "mongodb+srv://siamaqConsultancy:siamaqAdmin@siamaqdatabase.obfed2x.mongodb.net/bustabitClone";
 
 // Start Socket.io Server
 const server = http.createServer(app);
@@ -373,7 +373,7 @@ app.get("/api/calculate_winnings", checkAuthenticated, async (req, res) => {
 // Game Status
 app.get("/api/get_game_status", async (req, res) => {
   try {
-    let theLoop = await gameLoopModel.find().sort({ roundId: -1 }).limit(50);
+    let theLoop = await gameLoopModel.find().sort({ roundId: -1 }).limit(100);
     // console.log(theLoop);
     let crashlist = [];
     let roundIdList = [];
@@ -479,35 +479,40 @@ app.get("/api/auto_cashout_early", checkAuthenticated, async (req, res) => {
 });
 
 // Send Message
-app.post("/api/send_message_to_chatbox", checkAuthenticated, async (req, res) => {
-  try {
-    user_message = req.body.message_to_textbox;
-    message_json = {
-      the_user_id: req.user.id,
-      the_username: req.user.username,
-      message_body: user_message,
-      the_time: new Date().toLocaleTimeString([], {
-        hour: "numeric",
-        minute: "2-digit",
-      }),
-      the_date: new Date().toLocaleDateString(),
-    };
-    theLoop = await gameLoopModel.findById(GAME_LOOP_ID);
-    const somevar = await gameLoopModel.findOneAndUpdate(
-      { _id: GAME_LOOP_ID },
-      { $push: { chat_messages_list: message_json } }
-    );
+app.post(
+  "/api/send_message_to_chatbox",
+  checkAuthenticated,
+  async (req, res) => {
+    try {
+      user_message = req.body.message_to_textbox;
+      message_json = {
+        the_user_id: req.user.id,
+        the_username: req.user.username,
+        message_body: user_message,
+        the_time: new Date().toLocaleTimeString([], {
+          hour: "numeric",
+          minute: "2-digit",
+        }),
+        the_date: new Date().toLocaleDateString(),
+        time: new Date(),
+      };
+      theLoop = await gameLoopModel.findById(GAME_LOOP_ID);
+      const somevar = await gameLoopModel.findOneAndUpdate(
+        { _id: GAME_LOOP_ID },
+        { $push: { chat_messages_list: message_json } }
+      );
 
-    messages_list.push(message_json);
-    io.emit(
-      "receive_message_for_chat_box",
-      JSON.stringify(theLoop.chat_messages_list)
-    );
-    return res.status(200).send({ status: true, message: "Message sent" });
-  } catch (error) {
-    return res.status(500).send({ status: false, message: error.message });
+      messages_list.push(message_json);
+      io.emit(
+        "receive_message_for_chat_box",
+        JSON.stringify(theLoop.chat_messages_list)
+      );
+      return res.status(200).send({ status: true, message: "Message sent" });
+    } catch (error) {
+      return res.status(500).send({ status: false, message: error.message });
+    }
   }
-});
+);
 
 // Chat History
 app.get("/api/get_chat_history", async (req, res) => {
@@ -534,7 +539,7 @@ app.get("/api/retrieve_active_bettors_list", async (req, res) => {
 // Bet History
 app.get("/api/retrieve_bet_history", async (req, res) => {
   try {
-    let theLoop = await gameLoopModel.find().sort({ roundId: -1 }).limit(50);
+    let theLoop = await gameLoopModel.find().sort({ roundId: -1 }).limit(100);
     let crashList1 = [];
 
     for (let i = 0; i < theLoop.length; i++) {
@@ -730,7 +735,7 @@ const loopUpdate = async () => {
 
       let crashList2 = [];
       let roundIdList2 = [];
-      let theLoop = await gameLoopModel.find().sort({ roundId: -1 }).limit(50);
+      let theLoop = await gameLoopModel.find().sort({ roundId: -1 }).limit(100);
       for (let i = 0; i < theLoop.length; i++) {
         roundIdList2.push(theLoop[i]["roundId"]);
         crashList2.push(theLoop[i]["gameCrash"]);

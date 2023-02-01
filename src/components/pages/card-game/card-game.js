@@ -9,7 +9,7 @@ import Axios from "axios";
 import "react-toastify/dist/ReactToastify.css";
 import blackCard from "../../../images/blackCard.png";
 import redCard from "../../../images/redCard.png";
-import { Link } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import ChatMessage from "../chat-message-page/ChatMessage";
 import GameHistory from "../game-history-page/GameHistory";
 import { socket } from "../../socket-io-connection/socket";
@@ -23,7 +23,7 @@ function CardGame() {
   const [loginUsername, setLoginUsername] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [betAmount, setBetAmount] = useState(
-    localStorage.getItem("local_storage_wager") || 100
+    localStorage.getItem("local_storage_wager") || 10
   );
   const [autoPayoutMultiplier, setAutoPayoutMultiplier] = useState(
     localStorage.getItem("local_storage_multiplier") || 2
@@ -331,7 +331,8 @@ function CardGame() {
         setUserData(userData);
       }
     } catch (error) {
-      console.log(error);
+      // console.log(error);
+      setErrorMessage(error.response.data.customError)
     }
   };
 
@@ -448,6 +449,10 @@ function CardGame() {
     }
     if (text > userData.balance) {
       setErrorMessage("Bet greater than balance");
+    }else if(text < 10){
+      setErrorMessage("Bet can't less than 10$");
+    }else if(text > 500){
+      setErrorMessage("Bet can't greater than 500$");
     } else {
       setErrorMessage("");
     }
@@ -612,12 +617,13 @@ function CardGame() {
           <ul className="nav">
             {userData && userData !== "No User Authentication" ? (
               <>
-                <li>User: {userData.username}</li>
+              <NavLink to="/user">
+                <li>User: {userData.username}</li></NavLink>
                 <li> Balance: {userData.balance.toFixed(2)}</li>
-                <li>
-                  {/* <a href="/addFund">Add BTC</a> */}
+                {/* <li>
+                  <a href="/addFund">Add BTC</a>
                   <Link to="/addFund">Add Fund</Link>
-                </li>
+                </li> */}
                 <li>
                   <Link onClick={logout}>Logout</Link>
                 </li>
@@ -780,7 +786,7 @@ function CardGame() {
                 onKeyDown={handleKeyDownBetting}
               />
               <br />
-              <h1 className="makeshift-input-group">Card Selectd</h1>
+              <h1 className="makeshift-input-group">Card Selected</h1>
               <input
                 className="input_box"
                 placeholder="Card"

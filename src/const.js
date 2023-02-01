@@ -1,7 +1,8 @@
 import React from "react";
-import AddFund from "./pages/paymetGateway";
+// import AddFund from "./pages/paymetGateway";
 import Home from "./pages/cardGame";
 import Register from "./pages/registration";
+import UserData from "./pages/userData";
 
 export const ROUTES = [
   {
@@ -9,9 +10,13 @@ export const ROUTES = [
     page: <Home />,
   },
 
+  // {
+  //   path: "/addFund",
+  //   page: <AddFund />,
+  // },
   {
-    path: "/addFund",
-    page: <AddFund />,
+    path: "/user",
+    page: <UserData />,
   },
 
   {

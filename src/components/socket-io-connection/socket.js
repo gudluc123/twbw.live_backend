@@ -7,7 +7,6 @@ export const socket = io.connect("https://playnwin.fun", {
 
 // console.log('check 1', socket.connected);
 // console.log(process.env.REACT_APP_BASEURL)
-
 socket.on("connect_error", (error) => {
   console.log(error);
 });

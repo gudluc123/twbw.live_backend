@@ -281,6 +281,12 @@ app.post("/api/send_bet", checkAuthenticated, async (req, res) => {
     if (isNaN(req.body.bet_amount) == true) {
       return res.status(400).send({ customError: "Not a number" });
     }
+    if (req.body.bet_amount < 10) {
+      return res.status(400).send({ customError: "Bet can't less than 10$" });
+    }
+    if (req.body.bet_amount > 500) {
+      return res.status(400).send({ customError: "Bet can't greater than 500$" });
+    }
     // bDuplicate = false;
     theLoop = await gameLoopModel.findById(GAME_LOOP_ID);
     playerIdList = theLoop.active_player_id_list;

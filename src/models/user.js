@@ -27,7 +27,7 @@ const user = new mongoose.Schema(
     },
     bet_amount: {
       type: Number,
-      default: 0,
+      default: 10,
     },
     payout_multiplier: {
       type: String,

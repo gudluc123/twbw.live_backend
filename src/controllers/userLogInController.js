@@ -1,5 +1,33 @@
 const userLogInRecord = require("../models/userLogInRecord");
 const { isValidObjectId } = require("mongoose");
+const user = require("../models/user");
+
+const getUserData = async (req, res) => {
+  try {
+    let userId = req.params.userId;
+    userId = userId.trim();
+
+    if (!isValidObjectId(userId)) {
+      return res
+        .status(400)
+        .send({ status: false, message: "Invalid ObjectId" });
+    }
+
+    const user = await user.findOne({ _id: userId }).select("-__v ");
+
+    if (!user) {
+      return res
+        .status(404)
+        .send({ status: false, message: "User  Not Found" });
+    }
+
+    return res
+      .status(200)
+      .send({ status: "true", message: "Success", data: user });
+  } catch (error) {
+    return res.status(500).send({ status: false, message: error.message });
+  }
+};
 
 const getUserLogById = async (req, res) => {
   try {
@@ -62,4 +90,4 @@ const getUserLogList = async (req, res) => {
   }
 };
 
-module.exports = { getUserLogById, getUserLogList };
+module.exports = { getUserLogById, getUserLogList, getUserData };

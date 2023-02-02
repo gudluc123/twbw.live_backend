@@ -70,11 +70,14 @@ app.use(
     credentials: true,
   })
 );
+app.set("trust proxy", 1);
 app.use(
   session({
     secret: PASSPORT_SECRET,
-    resave: true,
-    saveUninitialized: true,
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: true, sameSite: false },
+    name: "cardToken",
   })
 );
 app.use(cookieParser(PASSPORT_SECRET));
@@ -138,12 +141,12 @@ app.post("/api/register", async (req, res) => {
       return res.send("Username already exists");
     }
 
-    const hashedPassword = await bcrypt.hash(req.body.password, 10);
+    // const hashedPassword = await bcrypt.hash(req.body.password, 10);
 
     const newUser = new User({
       username: username,
       userEmail: userEmail,
-      password: hashedPassword,
+      password: password,
       sponserId: sponserId,
     });
 
@@ -285,7 +288,9 @@ app.post("/api/send_bet", checkAuthenticated, async (req, res) => {
       return res.status(400).send({ customError: "Bet can't less than 10$" });
     }
     if (req.body.bet_amount > 500) {
-      return res.status(400).send({ customError: "Bet can't greater than 500$" });
+      return res
+        .status(400)
+        .send({ customError: "Bet can't greater than 500$" });
     }
     // bDuplicate = false;
     theLoop = await gameLoopModel.findById(GAME_LOOP_ID);

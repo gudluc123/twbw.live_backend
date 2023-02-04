@@ -12,7 +12,7 @@ export default function LiveBettinTable() {
     });
 
     socket.on("receive_live_betting_table", (data) => {
-    //   console.log(data);
+      //   console.log(data);
       setLiveBettingTable(data);
       data = JSON.parse(data);
       setTenNumbers(Array(10 - data.length).fill(2));

@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Modal from "../../modal/Modal";
 import { ToastContainer, toast } from "react-toastify";
-import { useMediaQuery } from 'react-responsive'
+import { useMediaQuery } from "react-responsive";
 import { Slide } from "react-toastify";
 import Axios from "axios";
 import "react-toastify/dist/ReactToastify.css";
@@ -66,6 +66,14 @@ function CardGame() {
       setBetActive(false);
     });
 
+    Axios.interceptors.request.use((config) => {
+      const token = localStorage.getItem("twbwToken");
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+      return config;
+    });
+
     socket.on("update_user", function (data) {
       getUser();
     });
@@ -85,15 +93,14 @@ function CardGame() {
     //   socket.disconnect();
     // };
   }, []);
-  
-    const isDesktopOrLaptop = useMediaQuery({
-      query: '(min-width: 1224px)'
-    })
-    const isBigScreen = useMediaQuery({ query: '(min-width: 1824px)' })
-    const isTabletOrMobile = useMediaQuery({ query: '(max-width: 1224px)' })
-    const isPortrait = useMediaQuery({ query: '(orientation: portrait)' })
-    const isRetina = useMediaQuery({ query: '(min-resolution: 2dppx)' })
-  
+
+  const isDesktopOrLaptop = useMediaQuery({
+    query: "(min-width: 1224px)",
+  });
+  const isBigScreen = useMediaQuery({ query: "(min-width: 1824px)" });
+  const isTabletOrMobile = useMediaQuery({ query: "(max-width: 1224px)" });
+  const isPortrait = useMediaQuery({ query: "(orientation: portrait)" });
+  const isRetina = useMediaQuery({ query: "(min-resolution: 2dppx)" });
 
   // Define useEffects
   useEffect(() => {
@@ -201,7 +208,7 @@ function CardGame() {
           setAuthResponseMessage(res1.data);
           getUser();
 
-          if (res1.data === "Login Successful") {
+          if (res1.data.message === "Login Successful") {
             setOpenModalRegister(false);
             registerAndLoginToast();
           }
@@ -225,10 +232,11 @@ function CardGame() {
       });
       // console.log(res);
       if (res) {
+        localStorage.setItem("twbwToken", res.data.data);
         setAuthResponseMessage(res.data);
         getUser();
 
-        if (res.data === "Login Successful") {
+        if (res.data.message === "Login Successful") {
           setOpenModalLogin(false);
           loginToast();
         }
@@ -246,7 +254,7 @@ function CardGame() {
         url: API_BASE + "/user",
       });
       // console.log(res);
-      if (res) {
+      if (res.data) {
         setUserData(res.data);
       }
     } catch (error) {
@@ -255,7 +263,9 @@ function CardGame() {
   };
   const logout = async () => {
     try {
-      const res = await Axios.get(API_BASE + "/logout", {
+      let accesToken = localStorage.getItem("twbwToken");
+      localStorage.clear();
+      const res = await Axios.get(API_BASE + `/logout?token=${accesToken}`, {
         withCredentials: true,
       });
 
@@ -332,7 +342,7 @@ function CardGame() {
       }
     } catch (error) {
       // console.log(error);
-      setErrorMessage(error.response.data.customError)
+      setErrorMessage(error.response.data.customError);
     }
   };
 
@@ -449,9 +459,9 @@ function CardGame() {
     }
     if (text > userData.balance) {
       setErrorMessage("Bet greater than balance");
-    }else if(text < 10){
+    } else if (text < 10) {
       setErrorMessage("Bet can't less than 10$");
-    }else if(text > 500){
+    } else if (text > 500) {
       setErrorMessage("Bet can't greater than 500$");
     } else {
       setErrorMessage("");
@@ -615,10 +625,11 @@ function CardGame() {
         <div className="container">
           <span className="logo">Gambling Game</span>
           <ul className="nav">
-            {userData && userData !== "No User Authentication" ? (
+            {userData && userData !== "No User Authentication" && localStorage.getItem("twbwToken") ? (
               <>
-              <NavLink to="/user">
-                <li>User: {userData.username}</li></NavLink>
+                <NavLink to="/user">
+                  <li>User: {userData.username}</li>
+                </NavLink>
                 <li> Balance: {userData.balance.toFixed(2)}</li>
                 {/* <li>
                   <a href="/addFund">Add BTC</a>
@@ -698,29 +709,7 @@ function CardGame() {
               <img src={redCard} width="60%" height="85%" alt="Red" />
             </label>
           </div>
-          {/* ):(
-            <div>{resultCard}</div>
-            )} */}
-          {/* {
-            <div className="effects-box"> */}
-          {/* <div
-                className="basically-the-graph"
-                style={{
-                  height: "90%",
-                  width: "90%",
-                  position: "absolute",
-                  top: "12%",
-                }}
-              >
-                {chartData ? (
-                  <SomeChart
-                    chartData={chartData}
-                    chartOptions={chartOptions}
-                  />
-                ) : (
-                  ""
-                )}
-              </div> */}
+         
           <div style={{ position: "absolute", zIndex: 12, top: "45%" }}>
             {(() => {
               if (bBettingPhase) {

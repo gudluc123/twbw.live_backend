@@ -35,22 +35,25 @@ export default function GameHistory() {
             <div className="col col-2">Result Card</div>
             {/* <div className="col col-3">Streak</div> */}
           </li>
-          {crashHistory && crashHistory
-            // .slice(0, 25)
-            // .reverse()
-            .map((crash, index, array) => {
-              return (
-                <div className="row-history-wrapper" key={index}>
-                  <li
-                    className={crash >= 2 ? "table-row-blue" : "table-row-red"}
-                  >
-                    <div className="col col-1">{roundIdList[index]} </div>
-                    <div className="col col-2">{crash}</div>
-                    {/* <div className="col col-3">{streakList[index]}</div> */}
-                  </li>
-                </div>
-              );
-            })}
+          {crashHistory &&
+            crashHistory
+              // .slice(0, 25)
+              // .reverse()
+              .map((crash, index, array) => {
+                return (
+                  <div className="row-history-wrapper" key={index}>
+                    <li
+                      className={
+                        crash >= 2 ? "table-row-blue" : "table-row-red"
+                      }
+                    >
+                      <div className="col col-1">{roundIdList[index]} </div>
+                      <div className="col col-2">{crash}</div>
+                      {/* <div className="col col-3">{streakList[index]}</div> */}
+                    </li>
+                  </div>
+                );
+              })}
         </ul>
       </div>
     </div>

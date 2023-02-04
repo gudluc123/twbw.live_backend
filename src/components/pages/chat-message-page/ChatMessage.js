@@ -3,11 +3,11 @@
 import React, { useState, useEffect } from "react";
 import { socket } from "../../socket-io-connection/socket";
 import Axios from "axios";
-import moment from 'moment'
+import moment from "moment";
 
 export default function ChatMessage() {
   const [userData, setUserData] = useState(null);
-  const [chatHistory, setChatHistory] = useState();
+  const [chatHistory, setChatHistory] = useState([]);
   const [errorMessage, setErrorMessage] = useState("");
   const [messageToTextBox, setMessageToTextBox] = useState("");
   const API_BASE = "https://playnwin.fun/api";
@@ -20,6 +20,14 @@ export default function ChatMessage() {
 
     socket.on("connect_error", (error) => {
       console.log(error);
+    });
+
+    Axios.interceptors.request.use((config) => {
+      const token = localStorage.getItem("twbwToken");
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+      return config;
     });
 
     // return () => {
@@ -35,7 +43,7 @@ export default function ChatMessage() {
         url: API_BASE + "/user",
       });
       // console.log(res);
-      if (res) {
+      if (res.data) {
         setUserData(res.data);
       }
     } catch (error) {
@@ -98,7 +106,7 @@ export default function ChatMessage() {
       Chat <br />
       <div className="chat-box-wrapper">
         <div className="chat-box-rectangle">
-          {chatHistory && chatHistory.length > 0 ? (
+          {chatHistory ? (
             <>
               {chatHistory.map((message, index) => {
                 return (

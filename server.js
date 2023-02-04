@@ -411,7 +411,7 @@ app.get(
 // Game Status
 app.get("/api/get_game_status", async (req, res) => {
   try {
-    let theLoop = await gameLoopModel.find().sort({ roundId: -1 }).limit(100);
+    let theLoop = await gameLoopModel.find().sort({ roundId: -1 }).limit(50);
     let crashlist = [];
     let roundIdList = [];
 
@@ -595,7 +595,7 @@ app.get("/api/retrieve_active_bettors_list", async (req, res) => {
 // Bet History
 app.get("/api/retrieve_bet_history", async (req, res) => {
   try {
-    let theLoop = await gameLoopModel.find().sort({ roundId: -1 }).limit(100);
+    let theLoop = await gameLoopModel.find().sort({ roundId: -1 }).limit(50);
     let crashList1 = [];
 
     for (let i = 0; i < theLoop.length; i++) {
@@ -767,7 +767,7 @@ const loopUpdate = async () => {
       io.emit("update_user");
       let crashList2 = [];
       let roundIdList2 = [];
-      let theLoop = await gameLoopModel.find().sort({ roundId: -1 }).limit(100);
+      let theLoop = await gameLoopModel.find().sort({ roundId: -1 }).limit(50);
 
       for (let i = 0; i < theLoop.length; i++) {
         roundIdList2.push(theLoop[i]["roundId"]);

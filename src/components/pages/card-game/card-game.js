@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from "react";
 import Modal from "../../modal/Modal";
 import { ToastContainer, toast } from "react-toastify";
-import { useMediaQuery } from "react-responsive";
 import { Slide } from "react-toastify";
 import Axios from "axios";
 import "react-toastify/dist/ReactToastify.css";
@@ -93,14 +92,6 @@ function CardGame() {
     //   socket.disconnect();
     // };
   }, []);
-
-  const isDesktopOrLaptop = useMediaQuery({
-    query: "(min-width: 1224px)",
-  });
-  const isBigScreen = useMediaQuery({ query: "(min-width: 1824px)" });
-  const isTabletOrMobile = useMediaQuery({ query: "(max-width: 1224px)" });
-  const isPortrait = useMediaQuery({ query: "(orientation: portrait)" });
-  const isRetina = useMediaQuery({ query: "(min-resolution: 2dppx)" });
 
   // Define useEffects
   useEffect(() => {
@@ -623,7 +614,7 @@ function CardGame() {
       </div>
       <nav className="navbar">
         <div className="container">
-          <span className="logo">Gambling Game</span>
+          <span className="logo">twbw.live</span>
           <ul className="nav">
             {userData && userData !== "No User Authentication" && localStorage.getItem("twbwToken") ? (
               <>
@@ -691,7 +682,7 @@ function CardGame() {
               }}
             />
             <label className="btn btn-outline-primary" htmlFor="btnradio1">
-              <img src={blackCard} width="60%" height="85%" alt="Black" />
+              <img src={blackCard} width="50%" height="75%" alt="Black" />
             </label>
             <input
               type="radio"
@@ -706,11 +697,11 @@ function CardGame() {
               }}
             />
             <label className="btn btn-outline-primary" htmlFor="btnradio2">
-              <img src={redCard} width="60%" height="85%" alt="Red" />
+              <img src={redCard} width="50%" height="75%" alt="Red" />
             </label>
           </div>
          
-          <div style={{ position: "absolute", zIndex: 12, top: "45%" }}>
+          <div style={{ position: "absolute", zIndex: 12, top: "25%" }}>
             {(() => {
               if (bBettingPhase) {
                 return <h1>Result in {bettingPhaseTime}</h1>;
@@ -732,8 +723,8 @@ function CardGame() {
                             {
                               <img
                                 src={redCard}
-                                width="75%"
-                                height="100%"
+                                width="40%"
+                                height="60%"
                                 alt="Red"
                               />
                             }
@@ -743,8 +734,8 @@ function CardGame() {
                             {
                               <img
                                 src={blackCard}
-                                width="75%"
-                                height="100%"
+                                width="40%"
+                                height="60%"
                                 alt="Black"
                               />
                             }
@@ -752,7 +743,7 @@ function CardGame() {
                         )}
                       </div> //liveMultiplier + "x"
                     ) : (
-                      "Starting..."
+                      "Result in few second..."
                     )}
                   </div>
                 );
@@ -852,9 +843,10 @@ function CardGame() {
             {errorMessage}
           </div>
         </div>
-        <ChatMessage />
+        
         <GameHistory />
         <LiveBettinTable />
+        <ChatMessage />
       </div>
     </div>
   );

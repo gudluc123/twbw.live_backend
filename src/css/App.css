@@ -217,6 +217,10 @@ ul {
   font-family: 'SKR';
   src: URL('SKR.ttf') format('truetype');
 }
+.grid-elements:nth-of-type(2) {
+  min-height: 35%;
+  padding-top: 1px;
+}
 
 .grid-elements:nth-of-type(4) {
   overflow-y: scroll;
@@ -226,6 +230,8 @@ ul {
 
 .grid-elements:nth-of-type(5) {
   padding: 10px;
+  overflow-y: scroll;
+
 }
 
 @media (max-width:500px) {
@@ -398,6 +404,7 @@ h2 small {
   text-transform: uppercase;
   letter-spacing: 0.03em;
   text-align: center;
+  
 }
 
 .history-table .table-row-blue {

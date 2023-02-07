@@ -843,10 +843,11 @@ function CardGame() {
             {errorMessage}
           </div>
         </div>
-        
-        <GameHistory />
-        <LiveBettinTable />
         <ChatMessage />
+        <LiveBettinTable />
+        <GameHistory />
+        
+        
       </div>
     </div>
   );

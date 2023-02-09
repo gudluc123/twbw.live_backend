@@ -5,30 +5,39 @@ const user = new mongoose.Schema(
     sponserId: {
       type: String,
       required: true,
+      trim: true,
     },
 
     username: {
       type: String,
       required: true,
       unique: true,
+      trim: true,
     },
+
     userEmail: {
       type: String,
       required: true,
       unique: true,
+      trim: true,
     },
+
     password: {
       type: String,
       required: true,
+      trim: true,
     },
+
     balance: {
       type: Number,
       default: 1000,
     },
+
     bet_amount: {
       type: Number,
       default: 10,
     },
+
     payout_multiplier: {
       type: String,
       // default: 0,
@@ -40,7 +49,7 @@ const user = new mongoose.Schema(
 
     role: {
       type: String,
-      enum: ["Broker", "SubBroker", "Agent", "User"],
+      enum: ["Broker", "SubBroker", "Agent", "User", "Bot"],
       default: "User",
     },
 

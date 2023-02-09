@@ -26,6 +26,7 @@ const jwtTokenSchema = require("./src/models/blacklistedToken");
 const Stopwatch = require("statman-stopwatch");
 const sw = new Stopwatch(true);
 const jwt = require("jsonwebtoken");
+const morgan = require("morgan");
 const { Authentication, AuthBalcklisted } = require("./src/middleware/auth");
 
 var GAME_LOOP_ID = GAME_LOOP_ID ? GAME_LOOP_ID : "63d9fe76cadbabd44c738c50";
@@ -72,6 +73,8 @@ app.use(
     credentials: true,
   })
 );
+app.use(morgan("dev"));
+
 // app.set("trust proxy", 2);
 // app.use(
 //   session({
@@ -86,7 +89,6 @@ app.use(
 // app.use(passport.initialize());
 // app.use(passport.session());
 // require("./passportConfig")(passport);
-
 // Passport.js login/register system
 
 app.post("/api/login", async (req, res) => {
@@ -100,7 +102,6 @@ app.post("/api/login", async (req, res) => {
     //   } else {
     //     req.logIn(user, async (err) => {
     //       if (err) throw err;
-
     //       // User LogIn Record
     //       const logData = {
     //         userId: user._id,
@@ -253,30 +254,30 @@ app.get("/api/logout", async (req, res, next) => {
   }
 });
 
-app.get("/api/multiply", AuthBalcklisted, Authentication, async (req, res) => {
-  try {
-    const thisUser = await User.findById(req.user._id);
-    const game_loop = await gameLoopModel.findById(GAME_LOOP_ID);
-    crashMultipler = game_loop.multiplier_crash;
-    thisUser.balance = thisUser.balance + 2;
-    await thisUser.save();
-    return res.status(200).json(thisUser);
-  } catch (error) {
-    return res.status(500).send({ status: false, message: error.message });
-  }
-});
+// app.get("/api/multiply", AuthBalcklisted, Authentication, async (req, res) => {
+//   try {
+//     const thisUser = await User.findById(req.user._id);
+//     const game_loop = await gameLoopModel.findById(GAME_LOOP_ID);
+//     crashMultipler = game_loop.multiplier_crash;
+//     thisUser.balance = thisUser.balance + 2;
+//     await thisUser.save();
+//     return res.status(200).json(thisUser);
+//   } catch (error) {
+//     return res.status(500).send({ status: false, message: error.message });
+//   }
+// });
 
-app.get("/api/generate_crash_value", async (req, res) => {
-  try {
-    const randomInt = Math.floor(Math.random() * 6) + 1;
-    const game_loop = await gameLoopModel.findById(GAME_LOOP_ID);
-    game_loop.multiplier_crash = resultCard;
-    await game_loop.save();
-    return res.json(randomInt);
-  } catch (error) {
-    return res.status(500).send({ status: false, message: error.message });
-  }
-});
+// app.get("/api/generate_crash_value", async (req, res) => {
+//   try {
+//     const randomInt = Math.floor(Math.random() * 6) + 1;
+//     const game_loop = await gameLoopModel.findById(GAME_LOOP_ID);
+//     game_loop.multiplier_crash = resultCard;
+//     await game_loop.save();
+//     return res.json(randomInt);
+//   } catch (error) {
+//     return res.status(500).send({ status: false, message: error.message });
+//   }
+// });
 
 app.get("/api/retrieve", async (req, res) => {
   try {
@@ -296,26 +297,38 @@ app.get("/api/retrieve", async (req, res) => {
 var totalAmount = 0;
 var totalAmountRedCard = 0;
 var totalAmountBlackCard = 0;
-
+let totalPlayer = [];
+let totalPlayerBetting = [];
 // Creating Bet
 app.post("/api/send_bet", AuthBalcklisted, Authentication, async (req, res) => {
   try {
+    const requestBody = req.body;
+    const { bet_amount, payout_multiplier } = requestBody;
+
     if (!betting_phase) {
       return res
         .status(400)
         .json({ customError: "IT IS NOT THE BETTING PHASE" });
     }
-    if (isNaN(req.body.bet_amount) == true) {
+    if (isNaN(bet_amount) == true) {
       return res.status(400).send({ customError: "Not a number" });
     }
-    if (req.body.bet_amount < 10) {
+    if (bet_amount < 10) {
       return res.status(400).send({ customError: "Bet can't less than 10$" });
     }
-    if (req.body.bet_amount > 500) {
+    if (bet_amount > 500) {
       return res
         .status(400)
         .send({ customError: "Bet can't greater than 500$" });
     }
+
+    totalAmount = totalAmount + Number(bet_amount);
+    if (payout_multiplier === "Red") {
+      totalAmountRedCard += Number(bet_amount);
+    } else {
+      totalAmountBlackCard += Number(bet_amount);
+    }
+
     // bDuplicate = false;
     theLoop = await gameLoopModel.findById(GAME_LOOP_ID);
     playerIdList = theLoop.active_player_id_list;
@@ -331,15 +344,23 @@ app.post("/api/send_bet", AuthBalcklisted, Authentication, async (req, res) => {
     }
 
     thisUser = await User.findById(req.user._id);
-    if (req.body.bet_amount > thisUser.balance) {
+    if (bet_amount > thisUser.balance) {
       return res.status(400).send({ customError: "Bet too big" });
     }
+
+    totalPlayer.push(req.user._id);
+    if (totalAmount > 10000 || totalPlayer.length > 100) {
+      return res
+        .status(400)
+        .send({ customError: "Bet limit exdeeds, bet next round" });
+    }
+
     await User.findByIdAndUpdate(req.user._id, {
-      bet_amount: req.body.bet_amount,
-      payout_multiplier: req.body.payout_multiplier,
+      bet_amount: bet_amount,
+      payout_multiplier: payout_multiplier,
     });
     await User.findByIdAndUpdate(req.user._id, {
-      balance: thisUser.balance - req.body.bet_amount,
+      balance: thisUser.balance - bet_amount,
     });
     await Game_loop.findByIdAndUpdate(GAME_LOOP_ID, {
       $push: { active_player_id_list: req.user._id },
@@ -348,8 +369,8 @@ app.post("/api/send_bet", AuthBalcklisted, Authentication, async (req, res) => {
     info_json = {
       the_user_id: req.user._id,
       the_username: req.user.username,
-      bet_amount: req.body.bet_amount,
-      cashout_multiplier: req.body.payout_multiplier,
+      bet_amount: bet_amount,
+      cashout_multiplier: payout_multiplier,
       profit: null,
       b_bet_live: true,
     };
@@ -360,21 +381,17 @@ app.post("/api/send_bet", AuthBalcklisted, Authentication, async (req, res) => {
     const userGameData = {
       userId: thisUser._id,
       roundId: theLoop["roundId"],
-      cardSelected: req.body.payout_multiplier,
-      betAmount: req.body.bet_amount,
-      remainingAmount: thisUser.balance - req.body.bet_amount,
+      cardSelected: payout_multiplier,
+      betAmount: bet_amount,
+      remainingAmount: thisUser.balance - bet_amount,
       timeStamp: Date.now(),
     };
     const userGameRecordData = await userGameLog.create(userGameData);
+    totalPlayerBetting.push(userGameRecordData._id);
 
     io.emit("receive_live_betting_table", JSON.stringify(live_bettors_table));
-    totalAmount = totalAmount + Number(req.body.bet_amount);
+    io.emit("update_user");
 
-    if (req.body.payout_multiplier === "Red") {
-      totalAmountRedCard += Number(req.body.bet_amount);
-    } else {
-      totalAmountBlackCard += Number(req.body.bet_amount);
-    }
     return res
       .status(200)
       .send({ status: true, message: `Bet placed for ${req.user.username}` });
@@ -383,32 +400,32 @@ app.post("/api/send_bet", AuthBalcklisted, Authentication, async (req, res) => {
   }
 });
 
-app.get(
-  "/api/calculate_winnings",
-  AuthBalcklisted,
-  Authentication,
-  async (req, res) => {
-    try {
-      let theLoop = await gameLoopModel.findById(GAME_LOOP_ID);
-      playerIdList = theLoop.active_player_id_list.map((e) => e.the_user_id);
-      crash_number = theLoop.resultCard;
-      for (const playerId of playerIdList) {
-        const currUser = await User.findById(playerId);
-        if (currUser.payout_multiplier == crash_number) {
-          currUser.balance += currUser.bet_amount * 2;
-          await currUser.save();
-        }
-      }
-      theLoop.active_player_id_list = [];
-      await theLoop.save();
-      return res.json("You clicked on the calcualte winnings button ");
-    } catch (error) {
-      return res.status(500).send({ status: false, message: error.message });
-    }
-  }
-);
-
+// app.get(
+//   "/api/calculate_winnings",
+//   AuthBalcklisted,
+//   Authentication,
+//   async (req, res) => {
+//     try {
+//       let theLoop = await gameLoopModel.findById(GAME_LOOP_ID);
+//       playerIdList = theLoop.active_player_id_list.map((e) => e.the_user_id);
+//       crash_number = theLoop.resultCard;
+//       for (const playerId of playerIdList) {
+//         const currUser = await User.findById(playerId);
+//         if (currUser.payout_multiplier == crash_number) {
+//           currUser.balance += currUser.bet_amount * 2;
+//           await currUser.save();
+//         }
+//       }
+//       theLoop.active_player_id_list = [];
+//       await theLoop.save();
+//       return res.json("You clicked on the calcualte winnings button ");
+//     } catch (error) {
+//       return res.status(500).send({ status: false, message: error.message });
+//     }
+//   }
+// );
 // Game Status
+
 app.get("/api/get_game_status", async (req, res) => {
   try {
     let theLoop = await gameLoopModel.find().sort({ roundId: -1 }).limit(50);
@@ -433,55 +450,51 @@ app.get("/api/get_game_status", async (req, res) => {
   }
 });
 
-app.get(
-  "/api/manual_cashout_early",
-  AuthBalcklisted,
-  Authentication,
-  async (req, res) => {
-    try {
-      if (!game_phase) {
-        return res
-          .status(400)
-          .send({ status: false, message: "It's not Game phase" });
-      }
-
-      theLoop = await gameLoopModel.findById(GAME_LOOP_ID);
-      let time_elapsed = (Date.now() - phase_start_time) / 1000.0;
-      current_multiplier = (1.0024 * Math.pow(1.0718, time_elapsed)).toFixed(2);
-      playerIdList = theLoop.active_player_id_list.map((e) => e.the_user_id);
-
-      if (
-        current_multiplier == resultCard &&
-        playerIdList.includes(req.user._id)
-      ) {
-        const currUser = await User.findById(req.user._id);
-        currUser.balance += currUser.bet_amount * 2;
-        await currUser.save();
-        await theLoop.updateOne({
-          $pull: { active_player_id_list: req.user._id },
-        });
-
-        for (const bettorObject of live_bettors_table) {
-          if (bettorObject.the_user_id === req.user._id) {
-            bettorObject.cashout_multiplier = 2;
-            bettorObject.profit = currUser.bet_amount * 2 - currUser.bet_amount;
-            bettorObject.b_bet_live = false;
-            io.emit(
-              "receive_live_betting_table",
-              JSON.stringify(live_bettors_table)
-            );
-            break;
-          }
-        }
-
-        return res.status(200).json(currUser);
-      } else {
-      }
-    } catch (error) {
-      return res.status(500).send({ status: false, message: error.message });
-    }
-  }
-);
+// app.get(
+//   "/api/manual_cashout_early",
+//   AuthBalcklisted,
+//   Authentication,
+//   async (req, res) => {
+//     try {
+//       if (!game_phase) {
+//         return res
+//           .status(400)
+//           .send({ status: false, message: "It's not Game phase" });
+//       }
+//       theLoop = await gameLoopModel.findById(GAME_LOOP_ID);
+//       let time_elapsed = (Date.now() - phase_start_time) / 1000.0;
+//       current_multiplier = (1.0024 * Math.pow(1.0718, time_elapsed)).toFixed(2);
+//       playerIdList = theLoop.active_player_id_list.map((e) => e.the_user_id);
+//       if (
+//         current_multiplier == resultCard &&
+//         playerIdList.includes(req.user._id)
+//       ) {
+//         const currUser = await User.findById(req.user._id);
+//         currUser.balance += currUser.bet_amount * 2;
+//         await currUser.save();
+//         await theLoop.updateOne({
+//           $pull: { active_player_id_list: req.user._id },
+//         });
+//         for (const bettorObject of live_bettors_table) {
+//           if (bettorObject.the_user_id === req.user._id) {
+//             bettorObject.cashout_multiplier = 2;
+//             bettorObject.profit = currUser.bet_amount * 2 - currUser.bet_amount;
+//             bettorObject.b_bet_live = false;
+//             io.emit(
+//               "receive_live_betting_table",
+//               JSON.stringify(live_bettors_table)
+//             );
+//             break;
+//           }
+//         }
+//         return res.status(200).json(currUser);
+//       } else {
+//       }
+//     } catch (error) {
+//       return res.status(500).send({ status: false, message: error.message });
+//     }
+//   }
+// );
 
 app.get(
   "/api/auto_cashout_early",
@@ -535,8 +548,8 @@ app.get(
 // Send Message
 app.post("/api/send_message_to_chatbox", Authentication, async (req, res) => {
   try {
-    user_message = req.body.message_to_textbox;
-    message_json = {
+    let user_message = req.body.message_to_textbox;
+    let message_json = {
       the_user_id: req.user._id,
       the_username: req.user.username,
       message_body: user_message,
@@ -601,7 +614,6 @@ app.get("/api/retrieve_bet_history", async (req, res) => {
     for (let i = 0; i < theLoop.length; i++) {
       crashList1.push(theLoop[i]["gameCrash"]);
     }
-
     io.emit("crash_history", crashList1);
 
     return res.status(200).send({ status: true });
@@ -636,19 +648,31 @@ server.listen(4000, () => {
 });
 
 const cashout = async () => {
-  theLoop = await gameLoopModel.findById(GAME_LOOP_ID);
-  playerIdList = theLoop.active_player_id_list.map((e) => e.the_user_id);
+  // console.log(totalPlayerBetting);
+  // theLoop = await gameLoopModel.findById(GAME_LOOP_ID);
+  // playerIdList = theLoop.active_player_id_list.map((e) => e.the_user_id);
 
-  for (const playerId of playerIdList) {
-    const currUser = await User.findById(playerId);
-    if (currUser.payout_multiplier == resultCard) {
+  for (const bettingId of totalPlayerBetting) {
+    // console.log(bettingId);
+    const userBet = await userGameLog.findById(bettingId);
+    const currUser = await User.findById(userBet.userId);
+    if (userBet.cardSelected === resultCard) {
       currUser.balance += currUser.bet_amount * 2;
       await currUser.save();
     }
   }
 
-  theLoop.active_player_id_list = [];
-  await theLoop.save();
+  // for (const playerId of playerIdList) {
+  //   const currUser = await User.findById(playerId);
+  //   if (currUser.payout_multiplier == resultCard) {
+  //     currUser.balance += currUser.bet_amount * 2;
+  //     await currUser.save();
+  //   }
+  // }
+  // theLoop.active_player_id_list = [];
+  // await theLoop.save();
+  totalPlayerBetting = [];
+  totalPlayer = [];
 };
 
 // Run Game Loop
@@ -662,7 +686,7 @@ const messages_list = [];
 let live_bettors_table = [];
 let betting_phase = false;
 let cashout_phase = true;
-let game_crash_value = -69;
+// let game_crash_value = -69;
 let sent_cashout = true;
 let resultCard;
 
@@ -735,7 +759,6 @@ const loopUpdate = async () => {
       right_now = Date.now();
 
       const update_loop = await gameLoopModel.findById(GAME_LOOP_ID);
-
       let updaetData = {
         gameCrash: resultCard,
         active_player_id_list: live_bettors_table,

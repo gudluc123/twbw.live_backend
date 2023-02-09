@@ -3,7 +3,8 @@ const mongoose = require("mongoose");
 const userGameLogSchema = new mongoose.Schema(
   {
     userId: {
-      type: mongoose.Types.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
     },
 
     roundId: {
@@ -29,7 +30,6 @@ const userGameLogSchema = new mongoose.Schema(
     timeStamp: {
       type: String,
     },
-    
   },
   { timestamps: true }
 );

@@ -43,11 +43,10 @@ function CardGame() {
   const [globalTimeNow, setGlobalTimeNow] = useState(0);
   const [openModalLogin, setOpenModalLogin] = useState(false);
   const [openModalRegister, setOpenModalRegister] = useState(false);
-  const [startTime, setStartTime] = useState();
   const [selectedCard, setSelectedCard] = useState("");
   const [resultCard, setResultCard] = useState("");
-
   // console.log(process.env.REACT_APP_BASEURL)
+
   // Socket.io setup
   useEffect(() => {
     retrieve();
@@ -150,7 +149,6 @@ function CardGame() {
   useEffect(() => {
     get_game_status();
     getUser();
-    setStartTime(Date.now());
     let getActiveBettorsTimer = setTimeout(
       () => retrieve_active_bettors_list(),
       1000
@@ -230,10 +228,14 @@ function CardGame() {
         if (res.data.message === "Login Successful") {
           setOpenModalLogin(false);
           loginToast();
+          setTimeout(() => {
+            window.location.reload();
+          }, 1600);
         }
       }
     } catch (error) {
       console.log(error);
+      // setErrorMessage(error.response.data.customError);
     }
   };
 
@@ -263,42 +265,45 @@ function CardGame() {
       if (res) {
         getUser();
         logoutToast();
+        setTimeout(() => {
+          window.location.reload();
+        }, 1600);
       }
     } catch (error) {
       console.log(error);
+      // setErrorMessage(error.response.data.customError);
     }
   };
 
-  const multiply = async () => {
-    try {
-      const res = await Axios.get(API_BASE + "/multiply", {
-        withCredentials: true,
-      });
-      // console.log(res);
+  // const multiply = async () => {
+  //   try {
+  //     const res = await Axios.get(API_BASE + "/multiply", {
+  //       withCredentials: true,
+  //     });
+  //     // console.log(res);
 
-      if (res) {
-        if (res.data !== "No User Authentication") {
-          setUserData(res.data);
-        }
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  //     if (res) {
+  //       if (res.data !== "No User Authentication") {
+  //         setUserData(res.data);
+  //       }
+  //     }
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // };
+  // const generate = async () => {
+  //   try {
+  //     const res = await Axios.get(API_BASE + "/generate_crash_value", {
+  //       withCredentials: true,
+  //     });
 
-  const generate = async () => {
-    try {
-      const res = await Axios.get(API_BASE + "/generate_crash_value", {
-        withCredentials: true,
-      });
-
-      if (res) {
-        setMultiplier(res.data);
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  //     if (res) {
+  //       setMultiplier(res.data);
+  //     }
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // };
 
   const retrieve = async () => {
     try {
@@ -337,20 +342,20 @@ function CardGame() {
     }
   };
 
-  const calculate_winnings = async () => {
-    try {
-      const res = await Axios.get(API_BASE + "/calculate_winnings", {
-        withCredentials: true,
-      });
-      // console.log(res);
+  // const calculate_winnings = async () => {
+  //   try {
+  //     const res = await Axios.get(API_BASE + "/calculate_winnings", {
+  //       withCredentials: true,
+  //     });
+  //     // console.log(res);
 
-      if (res) {
-        getUser();
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  //     if (res) {
+  //       getUser();
+  //     }
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // };
 
   const get_game_status = async () => {
     try {
@@ -369,24 +374,25 @@ function CardGame() {
       }
     } catch (error) {
       console.log(error);
+      // setErrorMessage(error.response.data.customError);
     }
   };
 
-  const manual_cashout_early = async () => {
-    try {
-      const res = await Axios.get(API_BASE + "/manual_cashout_early", {
-        withCredentials: true,
-      });
+  // const manual_cashout_early = async () => {
+  //   try {
+  //     const res = await Axios.get(API_BASE + "/manual_cashout_early", {
+  //       withCredentials: true,
+  //     });
 
-      // console.log(res);
-      if (res) {
-        setUserData(res.data);
-        setBetActive(false);
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  //     // console.log(res);
+  //     if (res) {
+  //       setUserData(res.data);
+  //       setBetActive(false);
+  //     }
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // };
 
   const auto_cashout_early = async () => {
     try {
@@ -470,7 +476,7 @@ function CardGame() {
   const loginToast = () => {
     toast.success("Login Successful", {
       position: "top-center",
-      autoClose: 2000,
+      autoClose: 1500,
       hideProgressBar: false,
       closeOnClick: true,
       pauseOnHover: false,
@@ -498,7 +504,7 @@ function CardGame() {
   const logoutToast = () => {
     toast.success("You have been logged out", {
       position: "top-center",
-      autoClose: 2000,
+      autoClose: 1500,
       hideProgressBar: false,
       closeOnClick: true,
       pauseOnHover: false,
@@ -593,14 +599,24 @@ function CardGame() {
               </button>
               <br />
             </div>
+            {sponserId !== "" && sponserId.length < 24 ? (
+              <span className="register_errors">SponserId can't be empty</span>
+            ) : (
+              ""
+            )}
             {registerUsername !== "" && registerUsername.length < 3 ? (
               <span className="register_errors">
                 Username must have at least 3 characters
               </span>
             ) : (
               ""
-            )}{" "}
-            <br />
+            )}
+
+            {registerEmail !== "" && registerEmail.length < 10 ? (
+              <span className="register_errors">Email can't be empty</span>
+            ) : (
+              ""
+            )}
             {registerPassword !== "" && registerPassword.length < 3 ? (
               <span className="register_errors">
                 Password must have at least 3 characters
@@ -616,7 +632,9 @@ function CardGame() {
         <div className="container">
           <span className="logo">twbw.live</span>
           <ul className="nav">
-            {userData && userData !== "No User Authentication" && localStorage.getItem("twbwToken") ? (
+            {userData &&
+            userData !== "No User Authentication" &&
+            localStorage.getItem("twbwToken") ? (
               <>
                 <NavLink to="/user">
                   <li>User: {userData.username}</li>
@@ -700,7 +718,7 @@ function CardGame() {
               <img src={redCard} width="50%" height="75%" alt="Red" />
             </label>
           </div>
-         
+
           <div style={{ position: "absolute", zIndex: 12, top: "25%" }}>
             {(() => {
               if (bBettingPhase) {
@@ -789,7 +807,7 @@ function CardGame() {
                     <div>
                       <button
                         className="css-button css-button-3d css-button-3d--grey"
-                        onClick={manual_cashout_early}
+                        // onClick={manual_cashout_early}
                       >
                         {betActive && resultCard ? (
                           <span>Cashout at {(2 * betAmount).toFixed(2)}</span>
@@ -846,8 +864,6 @@ function CardGame() {
         <ChatMessage />
         <LiveBettinTable />
         <GameHistory />
-        
-        
       </div>
     </div>
   );

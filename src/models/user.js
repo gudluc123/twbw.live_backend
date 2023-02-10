@@ -49,7 +49,7 @@ const user = new mongoose.Schema(
 
     role: {
       type: String,
-      enum: ["Broker", "SubBroker", "Agent", "User", "Bot"],
+      enum: ["Broker", "SubBroker", "Sponser", "User", "Bot", "Player"],
       default: "User",
     },
 

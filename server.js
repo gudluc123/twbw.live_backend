@@ -659,6 +659,38 @@ const cashout = async () => {
     if (userBet.cardSelected === resultCard) {
       currUser.balance += currUser.bet_amount * 2;
       await currUser.save();
+    } else {
+      currUser.balance += (currUser.bet_amount * 1) / 100;
+      const currSponser = await User.findById(currUser.sponserId);
+      // if(currSponser){
+
+      // }
+
+      //If Sponser is a "Broker"
+      if (currSponser.role === "Broker") {
+        currSponser.balance += (currUser.bet_amount * 3) / 100;
+      } else if (currSponser.role === "SubBroker") {
+        currSponser.balance += (currUser.bet_amount * 1.25) / 100;
+        const sponserofSB = await User.findById(currSponser.sponserId);
+        if (sponserofSB.role === "Broker") {
+          sponserofSB.balance += (currUser.bet_amount * 1.75) / 100;
+        }
+        await sponserofSB.save();
+      } else if (currSponser.role === "Sponser") {
+        currSponser.balance += (currUser.bet_amount * 0.5) / 100;
+        const sponserofSponser = await User.findById(currSponser.sponserId);
+        if (sponserofSponser.role === "Broker") {
+          sponserofSponser.balance += (currUser.bet_amount * 2.5) / 100;
+        } else if (sponserofSponser.role === "SubBroker") {
+          sponserofSponser.balance += (currUser.bet_amount * 2.5) / 100;
+        }
+        await sponserofSponser.save();
+      }
+
+      // const currSubBroker = await User.findById(currUser.userId);
+      // const currSponser = await User.findById(currUser.userId);
+      await currUser.save();
+      await currSponser.save();
     }
   }
 

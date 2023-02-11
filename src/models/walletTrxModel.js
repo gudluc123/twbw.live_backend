@@ -1,14 +1,23 @@
 const mongoose = require("mongoose");
 
-const transactionSchema = new mongoose.Schema(
+const walletTrxSchema = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      unique: true,
       trim: true,
     },
+
+    // betId: {
+    //   type: mongoose.Schema.Types.ObjectId,
+    //   ref: "UserGameLog",
+    //   trim: true,
+    // },
+
+    // roundId: {
+    //   type: Number,
+    // },
 
     credit: {
       type: Number,
@@ -48,7 +57,7 @@ const transactionSchema = new mongoose.Schema(
 
     txType: {
       type: String,
-      enum: ["credit", "debit"],
+      enum: ["Credit", "Debit", "LostCommission"],
     },
 
     transactionTime: {
@@ -61,4 +70,4 @@ const transactionSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model("Transaction", transactionSchema);
+module.exports = mongoose.model("WalletTransaction", walletTrxSchema);

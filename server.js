@@ -28,12 +28,14 @@ const sw = new Stopwatch(true);
 const jwt = require("jsonwebtoken");
 const morgan = require("morgan");
 const { Authentication, AuthBalcklisted } = require("./src/middleware/auth");
+const { randomTransactionId } = require("./src/utils/helper");
+const gameTrxModel = require("./src/models/gameTrxModel");
 
 var GAME_LOOP_ID = GAME_LOOP_ID ? GAME_LOOP_ID : "63d9fe76cadbabd44c738c50";
 
 let PASSPORT_SECRET = "Siamaq@9";
 let MONGOOSE_DB_LINK =
-  "mongodb+srv://siamaqConsultancy:siamaqAdmin@siamaqdatabase.obfed2x.mongodb.net/bustabitClone2";
+  "mongodb+srv://siamaqConsultancy:siamaqAdmin@siamaqdatabase.obfed2x.mongodb.net/bustabitClone1";
 
 // Start Socket.io Server
 const server = http.createServer(app);
@@ -389,6 +391,18 @@ app.post("/api/send_bet", AuthBalcklisted, Authentication, async (req, res) => {
     const userGameRecordData = await userGameLog.create(userGameData);
     totalPlayerBetting.push(userGameRecordData._id);
 
+    const transactionData = {
+      userId: thisUser._id,
+      betId: userGameRecordData._id,
+      roundId: theLoop["roundId"],
+      debit: bet_amount,
+      transactionId: randomTransactionId(9, ["A", "Z"], ["0", "9"]),
+      description: "For Betting in Game",
+      status: "Success",
+      txType: "Debit",
+    };
+    const transactionRecordOfBet = await gameTrxModel.create(transactionData);
+
     io.emit("receive_live_betting_table", JSON.stringify(live_bettors_table));
     io.emit("update_user");
 
@@ -647,62 +661,111 @@ server.listen(4000, () => {
   console.log(`Server running on Port 4000`);
 });
 
+// let totalPlayerWin = 0;
 const cashout = async () => {
   // console.log(totalPlayerBetting);
-  // theLoop = await gameLoopModel.findById(GAME_LOOP_ID);
-  // playerIdList = theLoop.active_player_id_list.map((e) => e.the_user_id);
+  let theLoop = await gameLoopModel.findById(GAME_LOOP_ID);
 
   for (const bettingId of totalPlayerBetting) {
     // console.log(bettingId);
     const userBet = await userGameLog.findById(bettingId);
     const currUser = await User.findById(userBet.userId);
+
+    // If a player win Game
     if (userBet.cardSelected === resultCard) {
       currUser.balance += currUser.bet_amount * 2;
       await currUser.save();
+      // totalPlayerWin = totalPlayerWin + 1;
+
+      const winTrData = {
+        userId: currUser._id,
+        betId: bettingId,
+        roundId: theLoop["roundId"],
+        credit: currUser.bet_amount * 2,
+        transactionId: randomTransactionId(9, ["A", "Z"], ["0", "9"]),
+        description: "For Betting in Game(Win) ",
+        status: "Success",
+        txType: "Credit",
+      };
+      const winTrRecordOfBet = await gameTrxModel.create(winTrData);
     } else {
+      // If a player Lost Game
       currUser.balance += (currUser.bet_amount * 1) / 100;
-      const currSponser = await User.findById(currUser.sponserId);
-      // if(currSponser){
 
-      // }
+      // If a player is self "Broker"
+      if (currUser.role === "Broker") {
+        currUser.balance += (currUser.bet_amount * 3) / 100;
+      } else if (currUser.role === "SubBroker") {
+        // If a player is self "SubBroker"
+        currUser.balance += (currUser.bet_amount * 1.25) / 100;
+        const sponserofSB = await User.findById(currUser.sponserId);
 
-      //If Sponser is a "Broker"
-      if (currSponser.role === "Broker") {
-        currSponser.balance += (currUser.bet_amount * 3) / 100;
-      } else if (currSponser.role === "SubBroker") {
-        currSponser.balance += (currUser.bet_amount * 1.25) / 100;
-        const sponserofSB = await User.findById(currSponser.sponserId);
         if (sponserofSB.role === "Broker") {
           sponserofSB.balance += (currUser.bet_amount * 1.75) / 100;
         }
         await sponserofSB.save();
-      } else if (currSponser.role === "Sponser") {
-        currSponser.balance += (currUser.bet_amount * 0.5) / 100;
-        const sponserofSponser = await User.findById(currSponser.sponserId);
+      } else if (currUser.role === "Sponser") {
+        // If a player is self "Sponser"
+        currUser.balance += (currUser.bet_amount * 0.5) / 100;
+        const sponserofSponser = await User.findById(currUser.sponserId);
+
         if (sponserofSponser.role === "Broker") {
           sponserofSponser.balance += (currUser.bet_amount * 2.5) / 100;
         } else if (sponserofSponser.role === "SubBroker") {
-          sponserofSponser.balance += (currUser.bet_amount * 2.5) / 100;
+          sponserofSponser.balance += (currUser.bet_amount * 0.75) / 100;
+          const sponserofSB = await User.findById(sponserofSponser.sponserId);
+
+          if (sponserofSB.role === "Broker") {
+            sponserofSB.balance += (currUser.bet_amount * 1.75) / 100;
+          }
+          await sponserofSB.save();
         }
         await sponserofSponser.save();
+      } else {
+        // If a player role is "Player"
+        const currSponser = await User.findById(currUser.sponserId);
+
+        // If Sponser of "Player" is a "Broker"
+        if (currSponser.role === "Broker") {
+          currSponser.balance += (currUser.bet_amount * 3) / 100;
+        } else if (currSponser.role === "SubBroker") {
+          // If Sponser of "Player" is a "SubBroker"
+          currSponser.balance += (currUser.bet_amount * 1.25) / 100;
+          const sponserofSB = await User.findById(currSponser.sponserId);
+
+          if (sponserofSB.role === "Broker") {
+            sponserofSB.balance += (currUser.bet_amount * 1.75) / 100;
+          }
+          await sponserofSB.save();
+        } else if (currSponser.role === "Sponser") {
+          // If Sponser of "Player" is a "Sponser"
+          currSponser.balance += (currUser.bet_amount * 0.5) / 100;
+          const sponserofSponser = await User.findById(currSponser.sponserId);
+
+          // If Sponser of "Sponser"(Player") is a "Broker"
+          if (sponserofSponser.role === "Broker") {
+            sponserofSponser.balance += (currUser.bet_amount * 2.5) / 100;
+          } else if (sponserofSponser.role === "SubBroker") {
+            // If Sponser of "Sponser"(Player") is a "SubBroker"
+            sponserofSponser.balance += (currUser.bet_amount * 2.5) / 100;
+          }
+          await sponserofSponser.save();
+        }
+        await currSponser.save();
       }
 
-      // const currSubBroker = await User.findById(currUser.userId);
-      // const currSponser = await User.findById(currUser.userId);
       await currUser.save();
-      await currSponser.save();
     }
   }
 
-  // for (const playerId of playerIdList) {
-  //   const currUser = await User.findById(playerId);
-  //   if (currUser.payout_multiplier == resultCard) {
-  //     currUser.balance += currUser.bet_amount * 2;
-  //     await currUser.save();
-  //   }
-  // }
-  // theLoop.active_player_id_list = [];
-  // await theLoop.save();
+  // const updateData = {
+  //   totalPlayerWin: totalPlayerWin,
+  //   totalPlayerLost: Number(totalPlayerBetting.length) - Number(totalPlayerWin),
+  // };
+  // const updateGameData = await gameLoopModel.findOneAndUpdate(
+  //   { _id: GAME_LOOP_ID },
+  //   { $set: updateData }
+  // );
   totalPlayerBetting = [];
   totalPlayer = [];
 };

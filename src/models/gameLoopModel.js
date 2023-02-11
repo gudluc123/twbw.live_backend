@@ -31,6 +31,16 @@ const gameLoop = new mongoose.Schema(
       default: 0,
     },
 
+    totalPlayerWin: {
+      type: Number,
+      default: 0,
+    },
+
+    totalPlayerLost: {
+      type: Number,
+      default: 0,
+    },
+
     b_betting_phase: {
       type: Boolean,
       default: false,

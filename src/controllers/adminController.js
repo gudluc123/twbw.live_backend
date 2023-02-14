@@ -3,6 +3,38 @@ const adminModel = require("../models/adminModel");
 const user = require("../models/user");
 const { isValid } = require("../utils/validator");
 
+const adminLogin = async (req, res) => {
+  try {
+    const requestBody = req.body;
+    const { email, password } = requestBody;
+
+    if (!email) {
+      return res.status(400).send("Invalid userName");
+    }
+
+    if (!password) {
+      return res.status(400).send("Invalid password");
+    }
+
+    const admin = await adminModel
+      .findOne({
+        email: email,
+        password: password,
+      })
+      .select("-__v -password");
+
+    if (!admin) {
+      return res.status(401).send("Email or Password not matched!");
+    }
+
+    return res
+      .status(200)
+      .send({ status: true, message: "Login Successful", data: admin });
+  } catch (error) {
+    return res.status(500).send({ status: false, message: error.message });
+  }
+};
+
 const updateUserRole = async (req, res) => {
   try {
     let userId = req.params.userId;
@@ -64,10 +96,10 @@ const updateUserRole = async (req, res) => {
 
     return res
       .status(200)
-      .send({ status: "true", message: "Success", data: updatedData });
+      .send({ status: "true", message: "Updated Successfully", data: updatedData });
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
   }
 };
 
-module.exports = { updateUserRole };
+module.exports = { adminLogin, updateUserRole };

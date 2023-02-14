@@ -6,14 +6,12 @@ const walletTrxSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      trim: true,
     },
 
-    // betId: {
-    //   type: mongoose.Schema.Types.ObjectId,
-    //   ref: "UserGameLog",
-    //   trim: true,
-    // },
+    walletId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "UserWallet",
+    },
 
     // roundId: {
     //   type: Number,

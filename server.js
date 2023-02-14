@@ -30,6 +30,8 @@ const morgan = require("morgan");
 const { Authentication, AuthBalcklisted } = require("./src/middleware/auth");
 const { randomTransactionId } = require("./src/utils/helper");
 const gameTrxModel = require("./src/models/gameTrxModel");
+const userWallet = require("./src/models/userWallet");
+const walletRoute = require("./src/routes/walletRoute");
 
 var GAME_LOOP_ID = GAME_LOOP_ID ? GAME_LOOP_ID : "63d9fe76cadbabd44c738c50";
 
@@ -183,7 +185,21 @@ app.post("/api/register", async (req, res) => {
       sponserId: sponserId,
     });
 
-    await newUser.save();
+    const userCreated = await newUser.save();
+
+    if (!userCreated) {
+      return res
+        .status(400)
+        .send({ status: false, message: "Internal Server error" });
+    }
+
+    const walletData = {
+      userId: userCreated._id,
+      marketId: 1,
+    };
+
+    const wallet = await userWallet.create(walletData);
+
     res.send("Loading...");
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
@@ -233,6 +249,7 @@ app.get("/api/user", AuthBalcklisted, Authentication, async (req, res) => {
     if (!user) {
       return res.status(403).send({ status: false, message: "Not Authorized" });
     }
+    io.emit("userData", user);
 
     // console.log(req.user);
     return res.status(200).send(user);
@@ -655,6 +672,7 @@ app.use("/api", route);
 app.use("/api/loop", gameLoopRoute);
 app.use("/api/userlog", userLogInRoute);
 app.use("/api/admin", adminRoute);
+app.use("/api/wallet", walletRoute);
 
 // Listen Server
 server.listen(4000, () => {

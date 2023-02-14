@@ -10,10 +10,10 @@ const walletSchema = new mongoose.Schema(
       trim: true,
     },
 
-    trId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Transaction",
-    },
+    // trId: {
+    //   type: mongoose.Schema.Types.ObjectId,
+    //   ref: "Transaction",
+    // },
 
     credit: {
       type: Number,
@@ -36,10 +36,10 @@ const walletSchema = new mongoose.Schema(
 
     balance: {
       type: Number,
-      default: null,
+      default: 1000,
     },
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model("Wallet", walletSchema);
+module.exports = mongoose.model("UserWallet", walletSchema);

@@ -6,7 +6,6 @@ const { isValid } = require("../utils/validator");
 const updateUserRole = async (req, res) => {
   try {
     let userId = req.params.userId;
-    userId = userId.trim();
     const requestBody = req.body;
 
     const { role, userStatus } = requestBody;
@@ -24,7 +23,11 @@ const updateUserRole = async (req, res) => {
           .status(400)
           .send({ status: false, message: "Invalid user role" });
       }
-      if (["Broker", "SubBroker", "Agent", "User"].indexOf(role) === -1) {
+      if (
+        ["Broker", "SubBroker", "Sponser", "User", "Bot", "Player"].indexOf(
+          role
+        ) === -1
+      ) {
         return res
           .status(400)
           .send({ status: false, message: "Please select valid user role" });

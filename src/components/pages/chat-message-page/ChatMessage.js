@@ -10,7 +10,7 @@ export default function ChatMessage() {
   const [chatHistory, setChatHistory] = useState([]);
   const [errorMessage, setErrorMessage] = useState("");
   const [messageToTextBox, setMessageToTextBox] = useState("");
-  const API_BASE = "https://playnwin.fun/api";
+  const API_BASE = "https://twbw.live/api";
 
   // Socket.io setup
   useEffect(() => {

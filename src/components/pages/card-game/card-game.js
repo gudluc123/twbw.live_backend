@@ -11,7 +11,7 @@ import redCard from "../../../images/redCard.png";
 import { Link, NavLink } from "react-router-dom";
 import ChatMessage from "../chat-message-page/ChatMessage";
 import GameHistory from "../game-history-page/GameHistory";
-import { socket } from "../../socket-io-connection/socket";
+import { socket, playSocket } from "../../socket-io-connection/socket";
 import LiveBettinTable from "../live-betting-table/LiveBettinTable";
 
 function CardGame() {
@@ -28,8 +28,8 @@ function CardGame() {
     localStorage.getItem("local_storage_multiplier") || 2
   );
   const [userData, setUserData] = useState(null);
-  const [multiplier, setMultiplier] = useState(null);
-  const [liveMultiplier, setLiveMultiplier] = useState("CONNECTING...");
+  // const [multiplier, setMultiplier] = useState(null);
+  const [liveMultiplier, setLiveMultiplier] = useState("Starting...");
   const [liveMultiplierSwitch, setLiveMultiplierSwitch] = useState(false);
   const [announcement, setAnnouncement] = useState("");
   const [globalSocket, setGlobalSocket] = useState(null);
@@ -45,24 +45,33 @@ function CardGame() {
   const [openModalRegister, setOpenModalRegister] = useState(false);
   const [selectedCard, setSelectedCard] = useState("");
   const [resultCard, setResultCard] = useState("");
+  const [timeEnd, setTimeEnd] = useState(false);
+  const API_BASE = "https://twbw.live/api";
   // console.log(process.env.REACT_APP_BASEURL)
 
   // Socket.io setup
   useEffect(() => {
-    retrieve();
+    // retrieve();
     setGlobalSocket(socket);
 
     socket.on("news_by_server", function (data) {
       setAnnouncement(data);
     });
 
-    socket.on("randomCardColor", function (data) {
-      // console.log(data);
+    let data = resultCard;
+    playSocket.on("randomCardColor", function (data) {
+      localStorage.setItem("twbwCard", data);
+      localStorage.setItem("twbwliveMultiplier", data);
       setResultCard(data);
       setLiveMultiplier(data);
       setLiveMultiplierSwitch(false);
       setBetActive(false);
     });
+
+    socket.emit("result", resultCard);
+    socket.emit("timeEnd", timeEnd);
+    // console.log(data);
+    // console.log(timeEnd);
 
     Axios.interceptors.request.use((config) => {
       const token = localStorage.getItem("twbwToken");
@@ -76,7 +85,7 @@ function CardGame() {
       getUser();
     });
 
-    socket.on("start_betting_phase", function (data) {
+    playSocket.on("start_betting_phase", function (data) {
       setGlobalTimeNow(Date.now());
       setLiveMultiplier("Starting...");
       setbBettingPhase(true);
@@ -90,7 +99,7 @@ function CardGame() {
     // return () => {
     //   socket.disconnect();
     // };
-  }, []);
+  }, [resultCard]);
 
   // Define useEffects
   useEffect(() => {
@@ -127,6 +136,7 @@ function CardGame() {
         setBettingPhaseTime(time_remaining);
         if (time_remaining < 0) {
           setbBettingPhase(false);
+          setTimeEnd(true);
         }
       }, 100);
     }
@@ -162,7 +172,6 @@ function CardGame() {
   }, []);
 
   // Routes
-  const API_BASE = "https://playnwin.fun/api";
   const register = async () => {
     try {
       const res = await Axios({
@@ -234,8 +243,8 @@ function CardGame() {
         }
       }
     } catch (error) {
-      console.log(error);
-      // setErrorMessage(error.response.data.customError);
+      // console.log(error);
+      setErrorMessage(error.response.data.customError);
     }
   };
 
@@ -270,8 +279,8 @@ function CardGame() {
         }, 1600);
       }
     } catch (error) {
-      console.log(error);
-      // setErrorMessage(error.response.data.customError);
+      // console.log(error);
+      setErrorMessage(error.response.data.customError);
     }
   };
 
@@ -305,19 +314,19 @@ function CardGame() {
   //   }
   // };
 
-  const retrieve = async () => {
-    try {
-      const res = await Axios.get(API_BASE + "/retrieve", {
-        withCredentials: true,
-      });
+  // const retrieve = async () => {
+  //   try {
+  //     const res = await Axios.get(API_BASE + "/retrieve", {
+  //       withCredentials: true,
+  //     });
 
-      if (res) {
-        setMultiplier(res.data);
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  //     if (res) {
+  //       setMultiplier(res.data);
+  //     }
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // };
 
   const send_bet = async () => {
     try {
@@ -338,7 +347,7 @@ function CardGame() {
       }
     } catch (error) {
       // console.log(error);
-      setErrorMessage(error.response.data.customError);
+      // setErrorMessage(error.response.data.customError);
     }
   };
 
@@ -365,16 +374,16 @@ function CardGame() {
 
       if (res) {
         if (res.data.phase === "betting_phase") {
-          setGlobalTimeNow(res.data.info);
+          // setGlobalTimeNow(res.data.info);
           setbBettingPhase(true);
         } else if (res.data.phase === "game_phase") {
-          setGlobalTimeNow(res.data.info);
+          // setGlobalTimeNow(res.data.info);
           setLiveMultiplierSwitch(true);
         }
       }
     } catch (error) {
-      console.log(error);
-      // setErrorMessage(error.response.data.customError);
+      // console.log(error);
+      setErrorMessage(error.response.data.customError);
     }
   };
 
@@ -722,7 +731,7 @@ function CardGame() {
           <div style={{ position: "absolute", zIndex: 12, top: "25%" }}>
             {(() => {
               if (bBettingPhase) {
-                return <h1>Result in {bettingPhaseTime}</h1>;
+                return <h3>Result in {bettingPhaseTime}</h3>;
               } else {
                 return (
                   <div
@@ -809,7 +818,7 @@ function CardGame() {
                         className="css-button css-button-3d css-button-3d--grey"
                         // onClick={manual_cashout_early}
                       >
-                        {betActive && resultCard ? (
+                        {betActive  ? (
                           <span>Cashout at {(2 * betAmount).toFixed(2)}</span>
                         ) : (
                           "Starting..."

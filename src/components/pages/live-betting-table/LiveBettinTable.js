@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { socket } from "../../socket-io-connection/socket";
+import { playSocket, socket } from "../../socket-io-connection/socket";
 
 export default function LiveBettinTable() {
   const [tenNumbers, setTenNumbers] = useState([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
@@ -7,7 +7,7 @@ export default function LiveBettinTable() {
 
   // Socket.io setup
   useEffect(() => {
-    socket.on("start_betting_phase", function (data) {
+    playSocket.on("start_betting_phase", function (data) {
       setLiveBettingTable(null);
     });
 

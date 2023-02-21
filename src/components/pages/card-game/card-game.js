@@ -100,7 +100,7 @@ function CardGame() {
     // return () => {
     //   socket.disconnect();
     // };
-  }, [timeEnd]);
+  }, [resultCard]);
 
   // Define useEffects
   useEffect(() => {

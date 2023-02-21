@@ -33,7 +33,7 @@ const gameTrxModel = require("./src/models/gameTrxModel");
 const userWallet = require("./src/models/userWallet");
 const walletRoute = require("./src/routes/walletRoute");
 
-var GAME_LOOP_ID = GAME_LOOP_ID ? GAME_LOOP_ID : "63d9fe76cadbabd44c738c50";
+var GAME_LOOP_ID = GAME_LOOP_ID ? GAME_LOOP_ID : "63f4bc54e97914d49eaf4722";
 
 // let PASSPORT_SECRET = "Siamaq@9";
 let MONGOOSE_DB_LINK =

@@ -58,17 +58,18 @@ function CardGame() {
       setAnnouncement(data);
     });
 
-    let data = resultCard;
+    var resultData;
     playSocket.on("randomCardColor", function (data) {
       localStorage.setItem("twbwCard", data);
       localStorage.setItem("twbwliveMultiplier", data);
       setResultCard(data);
+      resultData = data
       setLiveMultiplier(data);
       setLiveMultiplierSwitch(false);
       setBetActive(false);
     });
 
-    socket.emit("result", resultCard);
+    socket.emit("result", resultData);
     socket.emit("timeEnd", timeEnd);
     // console.log(data);
     // console.log(timeEnd);
@@ -347,7 +348,7 @@ function CardGame() {
       }
     } catch (error) {
       // console.log(error);
-      // setErrorMessage(error.response.data.customError);
+      setErrorMessage(error.response.data.customError);
     }
   };
 

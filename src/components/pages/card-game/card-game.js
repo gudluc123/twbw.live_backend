@@ -63,13 +63,13 @@ function CardGame() {
       localStorage.setItem("twbwCard", data);
       localStorage.setItem("twbwliveMultiplier", data);
       setResultCard(data);
-      resultData = data
+      // resultData = data
       setLiveMultiplier(data);
       setLiveMultiplierSwitch(false);
       setBetActive(false);
     });
 
-    socket.emit("result", resultData);
+    socket.emit("result", resultCard);
     socket.emit("timeEnd", timeEnd);
     // console.log(data);
     // console.log(timeEnd);
@@ -100,7 +100,7 @@ function CardGame() {
     // return () => {
     //   socket.disconnect();
     // };
-  }, [resultCard]);
+  }, [timeEnd]);
 
   // Define useEffects
   useEffect(() => {

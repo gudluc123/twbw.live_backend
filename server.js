@@ -813,7 +813,7 @@ const pat = setInterval(async () => {
     await loopUpdate();
     isTypedArray;
   }
-}, 1000);
+}, 500);
 
 const messages_list = [];
 let live_bettors_table = [];

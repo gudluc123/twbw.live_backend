@@ -2,11 +2,11 @@ const mongoose = require("mongoose");
 mongoose.set("strictQuery", false);
 const express = require("express");
 const cors = require("cors");
-const passport = require("passport");
-const passportLocal = require("passport-local").Strategy;
-const cookieParser = require("cookie-parser");
-const bcrypt = require("bcryptjs");
-const session = require("express-session");
+// const passport = require("passport");
+// const passportLocal = require("passport-local").Strategy;
+// const cookieParser = require("cookie-parser");
+// const bcrypt = require("bcryptjs");
+// const session = require("express-session");
 const app = express();
 const User = require("./src/models/user");
 require("dotenv").config();
@@ -23,8 +23,8 @@ const adminRoute = require("./src/routes/adminRoute");
 const gameLoopModel = require("./src/models/gameLoopModel");
 const Game_loop = require("./src/models/game_loop");
 const jwtTokenSchema = require("./src/models/blacklistedToken");
-const Stopwatch = require("statman-stopwatch");
-const sw = new Stopwatch(true);
+// const Stopwatch = require("statman-stopwatch");
+// const sw = new Stopwatch(true);
 const jwt = require("jsonwebtoken");
 const morgan = require("morgan");
 const { Authentication, AuthBalcklisted } = require("./src/middleware/auth");
@@ -35,9 +35,9 @@ const walletRoute = require("./src/routes/walletRoute");
 
 var GAME_LOOP_ID = GAME_LOOP_ID ? GAME_LOOP_ID : "63d9fe76cadbabd44c738c50";
 
-let PASSPORT_SECRET = "Siamaq@9";
+// let PASSPORT_SECRET = "Siamaq@9";
 let MONGOOSE_DB_LINK =
-  "mongodb+srv://siamaqConsultancy:siamaqAdmin@siamaqdatabase.obfed2x.mongodb.net/bustabitClone2";
+  "mongodb+srv://siamaqConsultancy:siamaqAdmin@siamaqdatabase.obfed2x.mongodb.net/bustabitClone";
 
 // Start Socket.io Server
 const server = http.createServer(app);
@@ -48,10 +48,21 @@ const io = new Server(server, {
     methods: ["GET", "POST"],
   },
 });
-
+let resultCard;
+let timeEnd;
 io.on("connection", (socket) => {
   socket.on("clicked", (data) => {});
   console.log("socket.io: User connected: ", socket.id);
+
+  socket.on("result", (data) => {
+    // console.log("data from client:", data);
+    resultCard = data;
+  });
+
+  socket.on("timeEnd", (data) => {
+    // console.log("data from client time:", data);
+    timeEnd = data;
+  });
 
   socket.on("disconnect", () => {
     console.log("socket.io: User disconnected: ", socket.id);
@@ -61,7 +72,7 @@ io.on("connection", (socket) => {
     console.log(error);
   });
 });
-
+// console.log(resultCard);
 // Connect to MongoDB
 mongoose.connect(MONGOOSE_DB_LINK, {
   useNewUrlParser: true,
@@ -298,21 +309,22 @@ app.get("/api/logout", async (req, res, next) => {
 //   }
 // });
 
-app.get("/api/retrieve", async (req, res) => {
-  try {
-    const game_loop = await gameLoopModel.findById(GAME_LOOP_ID);
-    crashMultipler = game_loop.gameCrash;
+// app.get("/api/retrieve", async (req, res) => {
+//   try {
+//     const game_loop = await gameLoopModel.findById(GAME_LOOP_ID);
+//     crashMultipler = game_loop.gameCrash;
 
-    res.json(crashMultipler);
+//     res.json(crashMultipler);
 
-    const delta = sw.read(2);
-    let seconds = delta / 1000.0;
-    seconds = seconds.toFixed(2);
-    return;
-  } catch (error) {
-    return res.status(500).send({ status: false, message: error.message });
-  }
-});
+//     const delta = sw.read(2);
+//     let seconds = delta / 1000.0;
+//     seconds = seconds.toFixed(2);
+//     return;
+//   } catch (error) {
+//     return res.status(500).send({ status: false, message: error.message });
+//   }
+// });
+
 var totalAmount = 0;
 var totalAmountRedCard = 0;
 var totalAmountBlackCard = 0;
@@ -323,6 +335,7 @@ app.post("/api/send_bet", AuthBalcklisted, Authentication, async (req, res) => {
   try {
     const requestBody = req.body;
     const { bet_amount, payout_multiplier } = requestBody;
+    // console.log(betting_phase);
 
     if (!betting_phase) {
       return res
@@ -675,8 +688,8 @@ app.use("/api/admin", adminRoute);
 app.use("/api/wallet", walletRoute);
 
 // Listen Server
-server.listen(4000, () => {
-  console.log(`Server running on Port 4000`);
+server.listen(5000, () => {
+  console.log(`Server running on Port 5000`);
 });
 
 // let totalPlayerWin = 0;
@@ -790,10 +803,17 @@ const cashout = async () => {
 
 // Run Game Loop
 let phase_start_time = Date.now();
+// const pat = setInterval(async () => {
+//   await loopUpdate();
+//   isTypedArray;
+// }, 30000);
+
 const pat = setInterval(async () => {
-  await loopUpdate();
-  isTypedArray;
-}, 30000);
+  if (timeEnd) {
+    await loopUpdate();
+    isTypedArray;
+  }
+}, 1000);
 
 const messages_list = [];
 let live_bettors_table = [];
@@ -801,66 +821,73 @@ let betting_phase = false;
 let cashout_phase = true;
 // let game_crash_value = -69;
 let sent_cashout = true;
-let resultCard;
+// console.log(betting_phase);
 
 // Game Loop Update After Result Card
 const loopUpdate = async () => {
   let time_elapsed = (Date.now() - phase_start_time) / 1000.0;
+  // console.log(time_elapsed)
 
   if (betting_phase) {
     if (time_elapsed > 6) {
       sent_cashout = false;
+      // betting_phase = true;
       betting_phase = false;
       game_phase = true;
       phase_start_time = Date.now();
     }
   } else if (game_phase) {
     // declare card elements
-    const suits = ["Spades", "Diamonds", "Club", "Heart"];
-    const values = [
-      "Ace",
-      "2",
-      "3",
-      "4",
-      "5",
-      "6",
-      "7",
-      "8",
-      "9",
-      "10",
-      "Jack",
-      "Queen",
-      "King",
-    ];
+    // const suits = ["Spades", "Diamonds", "Club", "Heart"];
+    // const values = [
+    //   "Ace",
+    //   "2",
+    //   "3",
+    //   "4",
+    //   "5",
+    //   "6",
+    //   "7",
+    //   "8",
+    //   "9",
+    //   "10",
+    //   "Jack",
+    //   "Queen",
+    //   "King",
+    // ];
 
-    // empty array to contain cards
-    let deck = [];
+    // // empty array to contain cards
+    // let deck = [];
 
-    // create a deck of cards
-    for (let i = 0; i < suits.length; i++) {
-      for (let x = 0; x < values.length; x++) {
-        let card = { Value: values[x], Suit: suits[i] };
-        deck.push(card);
-      }
-    }
+    // // create a deck of cards
+    // for (let i = 0; i < suits.length; i++) {
+    //   for (let x = 0; x < values.length; x++) {
+    //     let card = { Value: values[x], Suit: suits[i] };
+    //     deck.push(card);
+    //   }
+    // }
 
-    // shuffle the cards
-    for (let i = deck.length - 1; i > 0; i--) {
-      let j = Math.floor(Math.random() * i);
-      let temp = deck[i];
-      deck[i] = deck[j];
-      deck[j] = temp;
-    }
+    // // shuffle the cards
+    // for (let i = deck.length - 1; i > 0; i--) {
+    //   let j = Math.floor(Math.random() * i);
+    //   let temp = deck[i];
+    //   deck[i] = deck[j];
+    //   deck[j] = temp;
+    // }
 
-    // Display 1 Random result(card)
-    for (let i = 0; i < 1; i++) {
-      if (deck[i].Suit === "Club" || deck[i].Suit === "Spades") {
-        resultCard = "Black";
-      } else {
-        resultCard = "Red";
-      }
-    }
-    io.emit("randomCardColor", resultCard);
+    // // Display 1 Random result(card)
+    // for (let i = 0; i < 1; i++) {
+    //   if (deck[i].Suit === "Club" || deck[i].Suit === "Spades") {
+    //     resultCard = "Black";
+    //   } else {
+    //     resultCard = "Red";
+    //   }
+    // }
+    // io.emit("randomCardColor", resultCard);
+
+    // io.on("result", function (data) {
+    //   resultCard = data;
+    //   console.log(data);
+    // });
 
     game_phase = false;
     cashout_phase = true;
@@ -892,7 +919,6 @@ const loopUpdate = async () => {
       await update_loop.updateOne({
         $push: { previous_crashes: resultCard },
       });
-
       cashout();
     }
 
@@ -912,7 +938,7 @@ const loopUpdate = async () => {
 
       io.emit("crash_history", crashList2);
       io.emit("get_round_id_list", roundIdList2);
-      io.emit("start_betting_phase");
+      // io.emit("start_betting_phase");
       io.emit("testingvariable");
       live_bettors_table = [];
       totalAmount = 0;
@@ -920,6 +946,7 @@ const loopUpdate = async () => {
       totalAmountBlackCard = 0;
       phase_start_time = Date.now();
       game();
+      timeEnd = false;
     }
   }
 };

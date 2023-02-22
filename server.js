@@ -33,11 +33,11 @@ const gameTrxModel = require("./src/models/gameTrxModel");
 const userWallet = require("./src/models/userWallet");
 const walletRoute = require("./src/routes/walletRoute");
 
-var GAME_LOOP_ID = GAME_LOOP_ID ? GAME_LOOP_ID : "63f4bc54e97914d49eaf4722";
+var GAME_LOOP_ID = GAME_LOOP_ID ? GAME_LOOP_ID : "63f5a7a7ebdf87d2538ee99d"; //"63f4bc54e97914d49eaf4722";
 
 // let PASSPORT_SECRET = "Siamaq@9";
 let MONGOOSE_DB_LINK =
-  "mongodb+srv://siamaqConsultancy:siamaqAdmin@siamaqdatabase.obfed2x.mongodb.net/bustabitClone";
+  "mongodb+srv://siamaqConsultancy:siamaqAdmin@siamaqdatabase.obfed2x.mongodb.net/twbwDb";
 
 // Start Socket.io Server
 const server = http.createServer(app);
@@ -154,6 +154,19 @@ app.post("/api/login", async (req, res) => {
     const token = jwt.sign({ user: user }, "Game123$", {
       expiresIn: "12h",
     });
+
+    // User LogIn Record
+    const logData = {
+      userId: user._id,
+      userName: user.username,
+      host: req.hostname,
+      browser: req.rawHeaders[15],
+      ipAddress: req.ip,
+      timeStamp: new Date(),
+      logInStatus: true,
+    };
+    const userLog = await userLogInRecord.create(logData);
+
     res.set("Authorization", `Bearer ${token}`);
     // res.send({
     //   message: "login SuccessFull",

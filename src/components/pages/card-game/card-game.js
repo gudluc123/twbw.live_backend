@@ -46,6 +46,7 @@ function CardGame() {
   const [selectedCard, setSelectedCard] = useState("");
   const [resultCard, setResultCard] = useState("");
   const [timeEnd, setTimeEnd] = useState(false);
+  let [trigger, setTrigger] = useState(0);
   const API_BASE = "https://twbw.live/api";
   // console.log(process.env.REACT_APP_BASEURL)
 
@@ -63,7 +64,14 @@ function CardGame() {
       localStorage.setItem("twbwCard", data);
       localStorage.setItem("twbwliveMultiplier", data);
       setResultCard(data);
-      // resultData = data
+
+      if (trigger === 0) {
+        setTrigger(1);
+      } else if (trigger === 1) {
+        setTrigger(2);
+      } else if (trigger === 2) {
+        setTrigger(1);
+      }
       setLiveMultiplier(data);
       setLiveMultiplierSwitch(false);
       setBetActive(false);
@@ -100,7 +108,8 @@ function CardGame() {
     // return () => {
     //   socket.disconnect();
     // };
-  }, [resultCard]);
+    // console.log(trigger);
+  }, [trigger]);
 
   // Define useEffects
   useEffect(() => {
@@ -819,7 +828,7 @@ function CardGame() {
                         className="css-button css-button-3d css-button-3d--grey"
                         // onClick={manual_cashout_early}
                       >
-                        {betActive  ? (
+                        {betActive ? (
                           <span>Cashout at {(2 * betAmount).toFixed(2)}</span>
                         ) : (
                           "Starting..."

@@ -6,7 +6,7 @@ const walletSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      unique: true,
+      // unique: true,
       trim: true,
     },
 
@@ -32,6 +32,7 @@ const walletSchema = new mongoose.Schema(
     marketId: {
       type: String,
       trim: true,
+      // unique: true
     },
 
     balance: {

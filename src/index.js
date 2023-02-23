@@ -4,6 +4,7 @@ import { createRoot } from "react-dom/client";
 import App from "./App";
 import * as serviceWorker from "./serviceWorker";
 import "./css/index.css";
+import "bootstrap/dist/css/bootstrap.min.css";
 const container = document.getElementById("root");
 const root = createRoot(container);
 

@@ -13,6 +13,7 @@ import ChatMessage from "../chat-message-page/ChatMessage";
 import GameHistory from "../game-history-page/GameHistory";
 import { socket, playSocket } from "../../socket-io-connection/socket";
 import LiveBettinTable from "../live-betting-table/LiveBettinTable";
+import Navbar from "../../molecules/NavBar";
 
 function CardGame() {
   const [registerUsername, setRegisterUsername] = useState("");
@@ -253,7 +254,7 @@ function CardGame() {
         }
       }
     } catch (error) {
-      // console.log(error);
+      console.log(error);
       setErrorMessage(error.response.data.customError);
     }
   };
@@ -294,50 +295,6 @@ function CardGame() {
     }
   };
 
-  // const multiply = async () => {
-  //   try {
-  //     const res = await Axios.get(API_BASE + "/multiply", {
-  //       withCredentials: true,
-  //     });
-  //     // console.log(res);
-
-  //     if (res) {
-  //       if (res.data !== "No User Authentication") {
-  //         setUserData(res.data);
-  //       }
-  //     }
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-  // };
-  // const generate = async () => {
-  //   try {
-  //     const res = await Axios.get(API_BASE + "/generate_crash_value", {
-  //       withCredentials: true,
-  //     });
-
-  //     if (res) {
-  //       setMultiplier(res.data);
-  //     }
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-  // };
-
-  // const retrieve = async () => {
-  //   try {
-  //     const res = await Axios.get(API_BASE + "/retrieve", {
-  //       withCredentials: true,
-  //     });
-
-  //     if (res) {
-  //       setMultiplier(res.data);
-  //     }
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-  // };
-
   const send_bet = async () => {
     try {
       const res = await Axios({
@@ -361,21 +318,6 @@ function CardGame() {
     }
   };
 
-  // const calculate_winnings = async () => {
-  //   try {
-  //     const res = await Axios.get(API_BASE + "/calculate_winnings", {
-  //       withCredentials: true,
-  //     });
-  //     // console.log(res);
-
-  //     if (res) {
-  //       getUser();
-  //     }
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-  // };
-
   const get_game_status = async () => {
     try {
       const res = await Axios.get(API_BASE + "/get_game_status", {
@@ -396,22 +338,6 @@ function CardGame() {
       setErrorMessage(error.response.data.customError);
     }
   };
-
-  // const manual_cashout_early = async () => {
-  //   try {
-  //     const res = await Axios.get(API_BASE + "/manual_cashout_early", {
-  //       withCredentials: true,
-  //     });
-
-  //     // console.log(res);
-  //     if (res) {
-  //       setUserData(res.data);
-  //       setBetActive(false);
-  //     }
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-  // };
 
   const auto_cashout_early = async () => {
     try {
@@ -647,6 +573,7 @@ function CardGame() {
           <div></div>
         </Modal>
       </div>
+      {/* <Navbar/> */}
       <nav className="navbar">
         <div className="container">
           <span className="logo">twbw.live</span>
@@ -658,9 +585,10 @@ function CardGame() {
                 <NavLink to="/user">
                   <li>User: {userData.username}</li>
                 </NavLink>
-                <li> Balance: {userData.balance.toFixed(2)}</li>
+                <NavLink to="/addFund">
+                  <li> Balance: {userData.balance.toFixed(2)}</li>
+                </NavLink>
                 {/* <li>
-                  <a href="/addFund">Add BTC</a>
                   <Link to="/addFund">Add Fund</Link>
                 </li> */}
                 <li>
@@ -719,7 +647,7 @@ function CardGame() {
               }}
             />
             <label className="btn btn-outline-primary" htmlFor="btnradio1">
-              <img src={blackCard} width="50%" height="75%" alt="Black" />
+              <img src={blackCard} width="40%" height="75%" alt="Black" />
             </label>
             <input
               type="radio"
@@ -734,14 +662,14 @@ function CardGame() {
               }}
             />
             <label className="btn btn-outline-primary" htmlFor="btnradio2">
-              <img src={redCard} width="50%" height="75%" alt="Red" />
+              <img src={redCard} width="40%" height="75%" alt="Red" />
             </label>
           </div>
 
           <div style={{ position: "absolute", zIndex: 12, top: "25%" }}>
             {(() => {
               if (bBettingPhase) {
-                return <h3>Result in {bettingPhaseTime}</h3>;
+                return <h4>Result in {bettingPhaseTime}</h4>;
               } else {
                 return (
                   <div
@@ -760,7 +688,7 @@ function CardGame() {
                             {
                               <img
                                 src={redCard}
-                                width="40%"
+                                width="35%"
                                 height="60%"
                                 alt="Red"
                               />
@@ -771,7 +699,7 @@ function CardGame() {
                             {
                               <img
                                 src={blackCard}
-                                width="40%"
+                                width="35%"
                                 height="60%"
                                 alt="Black"
                               />

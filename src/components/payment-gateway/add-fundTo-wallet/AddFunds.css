@@ -1,0 +1,37 @@
+.add-funds {
+  margin: 20px;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #f7f7f7;
+}
+/* 
+.add-funds h2 {
+  margin-bottom: 20px;
+}
+
+.add-funds button[type="submit"] {
+  margin-top: 20px;
+} */
+
+.form-control {
+  background-clip: padding-box;
+  background-color: #fff;
+  border: 1px solid #dbdfea;
+  border-radius: 4px;
+  color: #3c4d62;
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  height: calc(2.125rem + 2px);
+  line-height: 1.25rem;
+  padding: 0.4375rem 1rem;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  width: 100%;
+}
+
+.form-group {
+  margin-bottom: 1.25rem;
+  position: relative;
+}
+

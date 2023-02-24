@@ -12,7 +12,7 @@ const User = require("./src/models/user");
 require("dotenv").config();
 const { Server } = require("socket.io");
 const http = require("http");
-const { isTypedArray } = require("util/types");
+// const { isTypedArray } = require("util/types");
 const userGameLog = require("./src/models/userGameLog");
 const route = require("./src/routes/route");
 const gameLoopRoute = require("./src/routes/gameLoopRoute");
@@ -32,7 +32,7 @@ var GAME_LOOP_ID = GAME_LOOP_ID ? GAME_LOOP_ID : "63f5b4df29800748be638f86"; //"
 
 // let PASSPORT_SECRET = "Siamaq@9";
 let MONGOOSE_DB_LINK =
-  "mongodb+srv://siamaqConsultancy:siamaqAdmin@siamaqdatabase.obfed2x.mongodb.net/twbwDb";
+  "mongodb+srv://siamaqConsultancy:siamaqAdmin@siamaqdatabase.obfed2x.mongodb.net/twbwDbTest";
 
 // Start Socket.io Server
 const server = http.createServer(app);
@@ -569,7 +569,6 @@ let phase_start_time = Date.now();
 const pat = setInterval(async () => {
   if (timeEnd) {
     await loopUpdate();
-    isTypedArray;
   }
 }, 500);
 

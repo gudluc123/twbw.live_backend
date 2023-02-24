@@ -10,7 +10,7 @@ export default function ChatMessage() {
   const [chatHistory, setChatHistory] = useState([]);
   const [errorMessage, setErrorMessage] = useState("");
   const [messageToTextBox, setMessageToTextBox] = useState("");
-  const API_BASE = "https://twbw.live/api";
+  const API_BASE = "http://localhost:5000/api";
 
   // Socket.io setup
   useEffect(() => {

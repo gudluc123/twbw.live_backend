@@ -48,7 +48,7 @@ function CardGame() {
   const [resultCard, setResultCard] = useState("");
   const [timeEnd, setTimeEnd] = useState(false);
   let [trigger, setTrigger] = useState(0);
-  const API_BASE = "https://twbw.live/api";
+  const API_BASE = "http://localhost:5000/api";
   // console.log(process.env.REACT_APP_BASEURL)
 
   // Socket.io setup
